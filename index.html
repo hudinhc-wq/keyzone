@@ -762,12 +762,12 @@ first.parentNode.insertBefore(script, first);
     }
   }
 </style><style data-shopify="">.header {
-    padding: 10px 3rem 10px 3rem;
+    padding: 4px 3rem 4px 3rem;
   }
 
   @media screen and (max-width: 920px) {
     .header {
-      padding: 20px 2rem 20px 2rem;
+      padding: 4px 2rem 4px 2rem;
     }
   }
 
@@ -784,8 +784,8 @@ first.parentNode.insertBefore(script, first);
 
   @media screen and (min-width: 990px) {
     .header {
-      padding-top: 20px;
-      padding-bottom: 20px;
+      padding-top: 4px;
+      padding-bottom: 4px;
     }
   }</style>
 
@@ -886,7 +886,7 @@ first.parentNode.insertBefore(script, first);
       
       
 <div class="kz-header-actions">
-<a href="https://secure.seekkey.com.br/conta/login" class="header__icon header__icon--account link focus-inset" rel="nofollow"><span class="kz-header-guest">Entrar / Cadastrar</span><span class="visually-hidden">Fazer login ou cadastrar</span></a>
+<a href="login.html" class="header__icon header__icon--account link focus-inset" rel="nofollow"><span class="kz-header-guest">Entrar / Cadastrar</span><span class="visually-hidden">Fazer login ou cadastrar</span></a>
 <span class="kz-header-sep" aria-hidden="true"></span>
 <a href="/cart" class="header__icon header__icon--cart link focus-inset" id="cart-icon-bubble">
         <span class="kz-header-cart-label">Carrinho</span>
@@ -3200,8 +3200,38 @@ first.parentNode.insertBefore(script, first);
   </div>
 </section><div id="shopify-section-template--21499907932383__testimonials_real_main" class="shopify-section"><style data-shopify="">.treal { padding: 60px 0; }
   .treal__header { text-align: center; margin-bottom: 40px; }
-  .treal__title { font-size: clamp(1.6rem,3vw,2.2rem); font-weight:700; color:#fff; margin:0 0 8px; }
-  .treal__subtitle { font-size: 14px; color: rgba(255,255,255,0.5); margin:0; }
+  .treal__ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: min(100%, 280px);
+    margin: 0 auto 14px;
+  }
+  .treal__ornament-line {
+    flex: 1;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, #ff7a00);
+  }
+  .treal__ornament-line--right { background: linear-gradient(90deg, #ff7a00, transparent); }
+  .treal__ornament-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid #ff7a00;
+    color: #ff7a00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    box-shadow: 0 0 10px rgba(255, 122, 0, 0.45);
+    background: radial-gradient(circle, rgba(255, 122, 0, 0.16), transparent 70%);
+  }
+  .treal__ornament-icon svg { width: 18px; height: 18px; display: block; }
+  .treal__title { font-size: clamp(1.8rem, 3.2vw, 2.45rem); font-weight: 800; color: #fff; margin: 0 0 8px; letter-spacing: -0.02em; line-height: 1.15; }
+  .treal__title span { color: #ff7a00; }
+  .treal__subtitle { font-size: 15px; color: rgba(255,255,255,0.55); margin: 0; }
   .treal__carousel-wrap { position:relative; }
 
   /* ── DESKTOP = fila fixa centralizada dos cartões do Instant Gaming ─────────
@@ -3217,30 +3247,72 @@ first.parentNode.insertBefore(script, first);
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: stretch;
     gap: 20px;
-    padding: 4px;
+    padding: 10px 4px;
   }
 
   .treal-card {
-    flex: 0 0 240px;
-    background: #1e1e1e;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
+    position: relative;
+    flex: 1 1 180px;
+    min-width: 0;
+    background:
+      linear-gradient(180deg, rgba(255, 122, 0, 0.07), transparent 36%),
+      linear-gradient(180deg, #171717 0%, #0c0c0c 100%);
+    border: 1px solid rgba(255, 122, 0, 0.72);
+    border-radius: 16px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 9px;
-    padding: 22px 18px;
-    transition: transform 0.2s, border-color 0.2s;
+    align-items: stretch;
+    text-align: left;
+    gap: 0;
+    padding: 16px 14px 14px;
+    box-shadow:
+      0 0 0 1px rgba(255, 122, 0, 0.14),
+      0 12px 28px rgba(0, 0, 0, 0.4);
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.45s ease, box-shadow 0.45s ease;
+  }
+  .treal-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, #ff7a00 52%, transparent 52%);
+    pointer-events: none;
+  }
+  .treal-card::after {
+    content: "\201C";
+    position: absolute;
+    top: 6px;
+    right: 12px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 28px;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.28);
+    pointer-events: none;
   }
   /* Q-339: o movimento no hover e o :active são affordance de clique, então só
      valem no cartão que ABRE algo (o que tem print). Sem isso o cartão sem
      imagem prometia clique e não fazia nada — era o defeito da Q-313. */
   .treal-card[data-full] { cursor: pointer; }
-  .treal-card[data-full]:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.18); }
   .treal-card[data-full]:active { opacity: .85; }
+
+  @media (hover: hover) and (pointer: fine) {
+    .treal-card:hover {
+      transform: translateY(-4px);
+      border-color: #ff7a00;
+      box-shadow:
+        0 0 0 1px rgba(255, 122, 0, 0.55),
+        0 0 22px rgba(255, 122, 0, 0.38),
+        0 16px 28px rgba(0, 0, 0, 0.45);
+    }
+    .treal-card:hover .treal-ig__av {
+      box-shadow: 0 0 16px rgba(255, 122, 0, 0.9);
+    }
+  }
 
   /* O print não aparece dentro do cartão: ele é carregado pelo lightbox a partir
      do data-full. O placeholder "Adicione o print" não existe mais (Q-312) — não
@@ -3259,47 +3331,74 @@ first.parentNode.insertBefore(script, first);
   .treal-ig { display: contents; }
 
   .treal-ig__av {
-    width: 60px;
-    height: 60px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    align-self: flex-start;
+    font-size: 15px;
     font-weight: 700;
-    color: #fff;
-    border: 2px solid rgba(255,255,255,0.1);
+    color: #ff7a00 !important;
+    background: radial-gradient(circle at 35% 30%, #2c261c, #12100e) !important;
+    border: 1.5px solid #ff7a00;
+    box-shadow: 0 0 10px rgba(255, 122, 0, 0.45);
+    transition: box-shadow 0.45s ease;
     flex: none;
   }
 
-  .treal-ig__stars { display: flex; gap: 1px; }
+  .treal-ig__stars { display: flex; gap: 2px; align-self: flex-start; margin-top: 12px; }
   .treal-ig__stars svg { width: 14px; height: 14px; }
-  .treal-ig__star--on { color: #F5C518; }
-  .treal-ig__star--off { color: rgba(255,255,255,0.15); }
+  .treal-ig__star--on { color: #ff7a00; filter: drop-shadow(0 0 3px rgba(255, 122, 0, 0.65)); }
+  .treal-ig__star--off { color: rgba(255, 122, 0, 0.28); }
 
   .treal-ig__prod {
     color: #fff;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 13.5px;
+    font-weight: 700;
+    line-height: 1.3;
     max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* 2 linhas, igual ao deles: o texto é chamariz, não leitura completa */
-  .treal-ig__txt {
-    color: rgba(255,255,255,0.55);
-    font-size: 12.5px;
-    line-height: 1.5;
-    margin: 0;
+    margin-top: 10px;
+    min-height: 2.6em;
+    white-space: normal;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  .treal-ig__tempo { color: rgba(255,255,255,0.35); font-size: 11px; }
+  .treal-ig__txt {
+    color: rgba(255,255,255,0.72);
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 10px 0 0;
+    min-height: calc(1.55em * 5);
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .treal-ig__txt::before { content: "\201C"; }
+  .treal-ig__txt::after { content: "\201D"; }
+
+  .treal-ig__tempo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 14px;
+    color: rgba(255,255,255,0.62);
+    font-size: 12px;
+    align-self: flex-start;
+  }
+  .treal-ig__tempo::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    flex: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff7a00' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M3 10h18M8 3v4M16 3v4'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
   .treal-ig__ver { color: #863dff; font-size: 11px; font-weight: 600; }
   .treal-ig__sel { color: #4ade80; font-size: 11px; display: inline-flex; align-items: center; gap: 3px; }
   .treal-ig__sel svg { width: 11px; height: 11px; }
@@ -3332,19 +3431,16 @@ first.parentNode.insertBefore(script, first);
     .treal__track::-webkit-scrollbar { display:none; }
 
     .treal-card {
-      flex: 0 0 150px;
+      flex: 0 0 230px;
       scroll-snap-align: start;
-      padding: 14px 10px 12px;
-      gap: 7px;
+      padding: 16px 14px 14px;
       -webkit-tap-highlight-color: transparent;
     }
-    .treal-card:hover { transform: none; }
-
-    .treal-ig__av { width: 56px; height: 56px; font-size: 20px; }
-    .treal-ig__stars svg { width: 12px; height: 12px; }
-    .treal-ig__prod { font-size: 12px; }
-    .treal-ig__txt { font-size: 11.5px; line-height: 1.45; }
-    .treal-ig__tempo { font-size: 10.5px; }
+    .treal-ig__av { width: 36px; height: 36px; font-size: 14px; }
+    .treal-ig__stars svg { width: 13px; height: 13px; }
+    .treal-ig__prod { font-size: 13px; }
+    .treal-ig__txt { font-size: 12.5px; line-height: 1.5; }
+    .treal-ig__tempo { font-size: 11px; }
     .treal-ig__ver { font-size: 10.5px; }
     .treal-ig__sel { font-size: 10.5px; }
   }
@@ -3380,7 +3476,11 @@ first.parentNode.insertBefore(script, first);
     cursor: pointer;
   }
   .treal-lb__close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-  @media (prefers-reduced-motion: reduce) { .treal-lb { transition: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .treal-lb,
+    .treal-card,
+    .treal-ig__av { transition: none; }
+  }
 
 
   /* ── HOME COMPACTA (14/08/2026, Q-222) ────────────────────────────────────
@@ -3391,33 +3491,45 @@ first.parentNode.insertBefore(script, first);
      larguras, porque na home o bloco fica ENTRE dois trilhos e não no fim da
      página. Escopado em `body.template-index`: os hubs não mudam. ─────────── */
   body.template-index .treal { padding: 26px 0; }
-  body.template-index .treal__header { margin-bottom: 18px; }
-  body.template-index .treal__title { font-size: 22px; }
-  body.template-index .treal__subtitle { font-size: 13px; }
+  body.template-index .treal__header { margin-bottom: 22px; }
+  body.template-index .treal__title { font-size: clamp(1.8rem, 3.2vw, 2.45rem); }
+  body.template-index .treal__subtitle { font-size: 15px; }
   body.template-index .treal-card {
-    flex: 0 0 220px;
-    padding: 16px 14px;
-    gap: 7px;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 16px 14px 14px;
   }
-  body.template-index .treal-ig__av { width: 48px; height: 48px; font-size: 18px; }
+  body.template-index .treal-ig__av { width: 38px; height: 38px; font-size: 15px; }
 
   @media (max-width: 749px) {
     /* no celular a referência é a versão que já está no ar no hub */
     body.template-index .treal { padding: 18px 0; }
-    body.template-index .treal__header { margin-bottom: 10px; }
-    body.template-index .treal__title { font-size: 16px; margin-bottom: 4px; }
-    body.template-index .treal__subtitle { font-size: 11px; }
-    body.template-index .treal-card { flex: 0 0 138px; padding: 10px 8px 9px; gap: 5px; }
-    body.template-index .treal-ig__av { width: 40px; height: 40px; font-size: 15px; }
-    body.template-index .treal-ig__prod { font-size: 11.5px; }
-    body.template-index .treal-ig__txt { font-size: 11px; }
+    body.template-index .treal__header { margin-bottom: 14px; }
+    body.template-index .treal__title { font-size: 22px; margin-bottom: 6px; }
+    body.template-index .treal__subtitle { font-size: 13px; }
+    body.template-index .treal__ornament { width: min(100%, 220px); margin-bottom: 10px; }
+    body.template-index .treal-card { flex: 0 0 230px; padding: 16px 14px 14px; }
+    body.template-index .treal-ig__av { width: 36px; height: 36px; font-size: 14px; }
+    body.template-index .treal-ig__prod { font-size: 13px; }
+    body.template-index .treal-ig__txt { font-size: 12.5px; }
     body.template-index .treal-ig__tempo,
-    body.template-index .treal-ig__ver { font-size: 10px; }
+    body.template-index .treal-ig__ver { font-size: 11px; }
+  }
+
+  @media (min-width: 750px) {
+    .treal__track { flex-wrap: nowrap; align-items: stretch; }
+    .treal-card,
+    body.template-index .treal-card { flex: 1 1 0; width: auto; min-width: 0; }
   }</style><section class="treal section-template--21499907932383__testimonials_real_main-padding color-scheme-1">
   <div class="page-width">
 
     <div class="treal__header">
-      <h2 class="treal__title">O que nossos clientes dizem</h2>
+      <div class="treal__ornament" aria-hidden="true">
+        <span class="treal__ornament-line"></span>
+        <span class="treal__ornament-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10a3.5 3.5 0 0 1 3.4 4.3l-.6 2.1a2 2 0 0 1-1.9 1.5h-.5a1.8 1.8 0 0 1-1.6-1l-.6-1.2H8.8l-.6 1.2a1.8 1.8 0 0 1-1.6 1h-.5a2 2 0 0 1-1.9-1.5l-.6-2.1A3.5 3.5 0 0 1 7 8z"></path><path d="M8.2 12.2h2.2M9.3 11.1v2.2"></path><circle cx="15.2" cy="11.4" r=".7" fill="currentColor" stroke="none"></circle><circle cx="16.9" cy="13" r=".7" fill="currentColor" stroke="none"></circle></svg></span>
+        <span class="treal__ornament-line treal__ornament-line--right"></span>
+      </div>
+      <h2 class="treal__title">O que nossos <span>clientes dizem</span></h2>
       <p class="treal__subtitle">Avaliações reais de quem já comprou</p>
     </div>
 
@@ -6468,6 +6580,42 @@ first.parentNode.insertBefore(script, first);
   <script src="js/seekkey-checkout-redirect-v2.js" defer="defer"></script>
   <!-- Seek Key Account Widget -->
 <script src="js/sk-account-widget.js" type="text/javascript"></script>
+<script>
+  // #region agent log
+  (function () {
+    var endpoint = "http://127.0.0.1:7869/ingest/ff63bd7b-2375-4ccb-be35-a060f73b39e2";
+    function send(hypothesisId, message, data) {
+      fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "475268" }, body: JSON.stringify({ sessionId: "475268", runId: "pre-fix", hypothesisId: hypothesisId, location: "index.html:account-link", message: message, data: data, timestamp: Date.now() }) }).catch(function () {});
+    }
+    function snapshot(message) {
+      var links = Array.prototype.slice.call(document.querySelectorAll("a.header__icon--account"));
+      send("A", message, { count: links.length, portal: window.SK_PORTAL || null, links: links.map(function (a) { return { href: a.getAttribute("href"), className: a.className, text: (a.textContent || "").trim().slice(0, 40) }; }) });
+    }
+    function watch() {
+      snapshot("account-links-now");
+      var links = document.querySelectorAll("a.header__icon--account");
+      links.forEach(function (a) {
+        new MutationObserver(function () { snapshot("href-or-class-mutated"); }).observe(a, { attributes: true, attributeFilter: ["href", "class"] });
+      });
+    }
+    document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest && e.target.closest("a.header__icon--account, .kz-header-guest");
+      if (!a) return;
+      var link = a.closest("a") || a;
+      send("B", "account-click-capture", { tag: e.target.tagName, href: link.getAttribute && link.getAttribute("href"), className: link.className, defaultPrevented: e.defaultPrevented });
+    }, true);
+    document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest && e.target.closest("a.header__icon--account, .kz-header-guest");
+      if (!a) return;
+      var link = a.closest("a") || a;
+      send("B", "account-click-bubble", { href: link.getAttribute && link.getAttribute("href"), className: link.className, defaultPrevented: e.defaultPrevented });
+    });
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", watch);
+    else watch();
+    setTimeout(function () { snapshot("account-links-after-1s"); }, 1000);
+  })();
+  // #endregion
+</script>
   <script src="js/seekkey-hover-video.js" defer=""></script>
   <script src="js/sk-contact-bubbles.js" type="text/javascript"></script>
 <button type="button" id="skBackToTop" class="sk-btt" aria-label="Voltar ao topo" style="top: 557.75px;">

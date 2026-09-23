@@ -444,12 +444,12 @@
     }
   }
 </style><style data-shopify="">.header {
-    padding: 10px 3rem 10px 3rem;
+    padding: 4px 3rem 4px 3rem;
   }
 
   @media screen and (max-width: 920px) {
     .header {
-      padding: 20px 2rem 20px 2rem;
+      padding: 4px 2rem 4px 2rem;
     }
   }
 
@@ -466,8 +466,8 @@
 
   @media screen and (min-width: 990px) {
     .header {
-      padding-top: 20px;
-      padding-bottom: 20px;
+      padding-top: 4px;
+      padding-bottom: 4px;
     }
   }</style>
 
@@ -568,7 +568,7 @@
       
       
 <div class="kz-header-actions">
-<a href="https://secure.seekkey.com.br/conta/login" class="header__icon header__icon--account link focus-inset" rel="nofollow"><span class="kz-header-guest">Entrar / Cadastrar</span><span class="visually-hidden">Fazer login ou cadastrar</span></a>
+<a href="login.html" class="header__icon header__icon--account link focus-inset" rel="nofollow"><span class="kz-header-guest">Entrar / Cadastrar</span><span class="visually-hidden">Fazer login ou cadastrar</span></a>
 <span class="kz-header-sep" aria-hidden="true"></span>
 <a href="/cart" class="header__icon header__icon--cart link focus-inset" id="cart-icon-bubble">
         <span class="kz-header-cart-label">Carrinho</span>
@@ -640,13 +640,80 @@
 <!-- END sections: header-group -->
 <main id="MainContent" class="content-for-layout focus-none" role="main" tabindex="-1">
     <section class="skig-rail sk-hrail kz-page" aria-label="Todos os jogos">
+      <div class="kz-glow" aria-hidden="true">
+        <svg class="kz-glow__defs" xmlns="http://www.w3.org/2000/svg" focusable="false">
+          <defs>
+            <filter id="kz-smoke-l" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+              <feTurbulence type="fractalNoise" baseFrequency="0.007 0.013" numOctaves="3" seed="2" result="noise">
+                <animate attributeName="baseFrequency" dur="24s" values="0.006 0.012;0.011 0.008;0.007 0.016;0.006 0.012" repeatCount="indefinite"></animate>
+              </feTurbulence>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="96" xChannelSelector="R" yChannelSelector="G" result="warp"></feDisplacementMap>
+              <feGaussianBlur in="warp" stdDeviation="5"></feGaussianBlur>
+            </filter>
+            <filter id="kz-smoke-r" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+              <feTurbulence type="fractalNoise" baseFrequency="0.008 0.015" numOctaves="3" seed="8" result="noise">
+                <animate attributeName="baseFrequency" dur="28s" values="0.009 0.014;0.006 0.018;0.012 0.01;0.009 0.014" repeatCount="indefinite"></animate>
+              </feTurbulence>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="110" xChannelSelector="R" yChannelSelector="B" result="warp"></feDisplacementMap>
+              <feGaussianBlur in="warp" stdDeviation="6"></feGaussianBlur>
+            </filter>
+          </defs>
+        </svg>
+        <div class="kz-smoke">
+          <div class="kz-smoke__col kz-smoke__col--l">
+            <div class="kz-smoke__veil"><span></span><span></span><span></span><span></span><span></span></div>
+          </div>
+          <div class="kz-smoke__col kz-smoke__col--r">
+            <div class="kz-smoke__veil"><span></span><span></span><span></span><span></span><span></span></div>
+          </div>
+        </div>
+      </div>
       <div class="skig-rail__h">
         <h1 class="skig-rail__t">Todos os jogos</h1>
       </div>
+      <div class="kz-layout">
+        <aside class="kz-filters" aria-label="Filtrar jogos">
+          <p class="kz-count" data-kz-count>Mostrando jogos</p>
+          <details class="kz-filter" open>
+            <summary class="kz-filter__sum">
+              <span>Preço</span>
+              <svg class="kz-filter__chev" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 5.2 7 9.2l4.5-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="kz-range">
+              <div class="kz-range__rail" aria-hidden="true"><span class="kz-range__fill" data-kz-fill></span></div>
+              <input class="kz-range__input" data-kz-min type="range" min="0" max="100" value="0" aria-label="Preço mínimo">
+              <input class="kz-range__input" data-kz-max type="range" min="0" max="100" value="100" aria-label="Preço máximo">
+            </div>
+            <div class="kz-range__fields">
+              <label class="kz-range__field">R$ <input data-kz-min-field inputmode="decimal" aria-label="Preço mínimo em reais"></label>
+              <span class="kz-range__dash" aria-hidden="true"></span>
+              <label class="kz-range__field">R$ <input data-kz-max-field inputmode="decimal" aria-label="Preço máximo em reais"></label>
+            </div>
+          </details>
+          <details class="kz-filter" open>
+            <summary class="kz-filter__sum">
+              <span>Categoria</span>
+              <svg class="kz-filter__chev" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 5.2 7 9.2l4.5-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="kz-chips" role="group" aria-label="Categoria">
+              <button class="kz-chip is-on" type="button" data-kz-cat="">Todas</button>
+              <button class="kz-chip" type="button" data-kz-cat="mundo-aberto">Mundo Aberto</button>
+              <button class="kz-chip" type="button" data-kz-cat="tiro">Jogos de Tiro</button>
+              <button class="kz-chip" type="button" data-kz-cat="acao">Ação e Aventura</button>
+              <button class="kz-chip" type="button" data-kz-cat="rpg">RPG</button>
+              <button class="kz-chip" type="button" data-kz-cat="soulslike">Soulslike</button>
+              <button class="kz-chip" type="button" data-kz-cat="terror">Terror</button>
+              <button class="kz-chip" type="button" data-kz-cat="simulacao">Simulação &amp; Estratégia</button>
+              <button class="kz-chip" type="button" data-kz-cat="anime">Anime</button>
+              <button class="kz-chip" type="button" data-kz-cat="luta">Luta</button>
+              <button class="kz-chip" type="button" data-kz-cat="esportes">Esportes</button>
+            </div>
+          </details>
+        </aside>
+        <div class="kz-catalog">
       <form class="kz-find" role="search" onsubmit="return false">
         <label class="visually-hidden" for="kz-find" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Buscar jogo</label>
         <input class="kz-find__input" id="kz-find" type="search" placeholder="Buscar jogo" autocomplete="off">
-        <p class="kz-count" data-kz-count></p>
       </form>
       <div class="kz-grid">
         <article class="kz-card" data-name="red dead redemption 2 steam red dead redemption 2 (steam/pc)">
@@ -1515,6 +1582,8 @@
 </article>
       </div>
       <p class="kz-empty" data-kz-empty hidden>Nenhum jogo encontrado.</p>
+        </div>
+      </div>
     </section>
   </main>
 <!-- BEGIN sections: footer-group -->
@@ -1626,19 +1695,120 @@
       var cards = [].slice.call(document.querySelectorAll('.kz-card'));
       var empty = document.querySelector('[data-kz-empty]');
       var count = document.querySelector('[data-kz-count]');
+      var minRange = document.querySelector('[data-kz-min]');
+      var maxRange = document.querySelector('[data-kz-max]');
+      var minField = document.querySelector('[data-kz-min-field]');
+      var maxField = document.querySelector('[data-kz-max-field]');
+      var fill = document.querySelector('[data-kz-fill]');
+      var chips = [].slice.call(document.querySelectorAll('[data-kz-cat]'));
+      var cat = '';
+      var CATS = {
+        'red dead redemption 2': 'mundo-aberto acao',
+        'grand theft auto v': 'mundo-aberto acao',
+        'project zomboid': 'terror simulacao',
+        'onimusha: way of the sword': 'acao',
+        'ea sports fc 25': 'esportes',
+        'marvel\'s spider-man remastered': 'acao mundo-aberto',
+        'call of duty: black ops 2': 'tiro',
+        'the last of us part i': 'acao terror',
+        'marvel\'s spider-man 2': 'acao mundo-aberto',
+        'elden ring': 'rpg soulslike mundo-aberto',
+        'euro truck simulator 2': 'simulacao',
+        'the last of us part ii': 'acao terror',
+        'the last of us remastered': 'acao terror',
+        'black myth: wukong': 'acao rpg soulslike',
+        'it takes two': 'acao',
+        'tekken 8': 'luta',
+        'ea sports fc 26': 'esportes',
+        'god of war ragnarok': 'acao',
+        'naruto shippuden: ultimate ninja storm 4': 'luta anime',
+        'ark: survival evolved': 'mundo-aberto simulacao acao',
+        'reanimal': 'terror',
+        'microsoft flight simulator 2024': 'simulacao',
+        'how to fish': 'simulacao',
+        'bombanana!': 'acao',
+        'the blood of dawnwalker': 'rpg acao',
+        'crimson moon': 'acao',
+        'r.e.p.o.': 'terror',
+        'peak': 'acao',
+        'mortal shell ii': 'soulslike acao',
+        'truck driver': 'simulacao',
+        'god of war sons of sparta': 'acao',
+        'yakuza 0': 'acao',
+        'wwe 2k25': 'esportes luta',
+        'uncharted the nathan drake collection': 'acao'
+      };
       function fold(value) {
         return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
       }
+      function centsOf(text) {
+        var match = String(text).replace(/\s/g, '').match(/(\d[\d.]*)[,.](\d{2})/);
+        if (!match) return 0;
+        return Number(match[1].replace(/\./g, '')) * 100 + Number(match[2]);
+      }
+      function reais(cents) {
+        return (cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function parseReais(text) {
+        var clean = String(text).replace(/[^\d,.]/g, '').trim();
+        if (!clean) return NaN;
+        if (clean.indexOf(',') !== -1) clean = clean.replace(/\./g, '').replace(',', '.');
+        var value = Number(clean);
+        return isFinite(value) ? Math.round(value * 100) : NaN;
+      }
+      cards.forEach(function (card) {
+        var title = card.querySelector('.kz-card__title');
+        var price = card.querySelector('.kz-card__price strong');
+        var key = fold(title ? title.textContent : '');
+        card.setAttribute('data-cats', CATS[key] || '');
+        card.setAttribute('data-price', String(centsOf(price ? price.textContent : '')));
+      });
+      var prices = cards.map(function (card) { return Number(card.getAttribute('data-price')); }).filter(function (n) { return n > 0; });
+      var floor = prices.length ? Math.min.apply(null, prices) : 0;
+      var ceil = prices.length ? Math.max.apply(null, prices) : 0;
+      [minRange, maxRange].forEach(function (el) {
+        el.min = String(floor);
+        el.max = String(ceil);
+        el.step = '10';
+      });
+      minRange.value = String(floor);
+      maxRange.value = String(ceil);
+      function paint() {
+        var lo = Number(minRange.min);
+        var hi = Number(minRange.max);
+        var span = hi - lo || 1;
+        var min = Number(minRange.value);
+        var max = Number(maxRange.value);
+        fill.style.left = ((min - lo) / span * 100) + '%';
+        fill.style.right = ((hi - max) / span * 100) + '%';
+        minField.value = reais(min);
+        maxField.value = reais(max);
+      }
+      function clampRanges(prefer) {
+        var min = Number(minRange.value);
+        var max = Number(maxRange.value);
+        if (min > max) {
+          if (prefer === 'min') maxRange.value = String(min);
+          else minRange.value = String(max);
+        }
+      }
       function apply() {
         var q = fold((input.value || '').trim());
+        var min = Number(minRange.value);
+        var max = Number(maxRange.value);
         var n = 0;
         cards.forEach(function (card) {
-          var show = !q || card.getAttribute('data-name').indexOf(q) !== -1;
+          var price = Number(card.getAttribute('data-price'));
+          var cats = card.getAttribute('data-cats') || '';
+          var show = (!q || card.getAttribute('data-name').indexOf(q) !== -1)
+            && price >= min && price <= max
+            && (!cat || (' ' + cats + ' ').indexOf(' ' + cat + ' ') !== -1);
           card.hidden = !show;
           if (show) n += 1;
         });
         empty.hidden = n !== 0;
-        count.textContent = n + (n === 1 ? ' jogo' : ' jogos');
+        count.textContent = 'Mostrando ' + n + (n === 1 ? ' jogo' : ' jogos');
+        paint();
       }
       document.querySelectorAll('.kz-card__fav').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -1647,6 +1817,38 @@
         });
       });
       input.addEventListener('input', apply);
+      minRange.addEventListener('input', function () {
+        clampRanges('min');
+        minRange.style.zIndex = '5';
+        maxRange.style.zIndex = '4';
+        apply();
+      });
+      maxRange.addEventListener('input', function () {
+        clampRanges('max');
+        maxRange.style.zIndex = '5';
+        minRange.style.zIndex = '4';
+        apply();
+      });
+      function commitField(field, range, prefer) {
+        var next = parseReais(field.value);
+        if (!isFinite(next)) { paint(); return; }
+        var lo = Number(range.min);
+        var hi = Number(range.max);
+        range.value = String(Math.min(hi, Math.max(lo, next)));
+        clampRanges(prefer);
+        apply();
+      }
+      minField.addEventListener('change', function () { commitField(minField, minRange, 'min'); });
+      maxField.addEventListener('change', function () { commitField(maxField, maxRange, 'max'); });
+      minField.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); commitField(minField, minRange, 'min'); } });
+      maxField.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); commitField(maxField, maxRange, 'max'); } });
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          cat = chip.getAttribute('data-kz-cat') || '';
+          chips.forEach(function (other) { other.classList.toggle('is-on', other === chip); });
+          apply();
+        });
+      });
       apply();
 
       function kzTrimBars(img) {
