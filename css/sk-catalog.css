@@ -1,0 +1,423 @@
+.kz-page,
+.kz-page * { box-sizing: border-box; }
+
+.kz-page.sk-hrail { padding-top: 28px; padding-bottom: 48px; }
+
+.kz-find {
+  max-width: 1320px;
+  margin: 0 auto 22px;
+  padding: 0 50px;
+}
+
+.kz-find__input {
+  width: min(420px, 100%);
+  height: 46px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1e1e1e;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.kz-find__input::placeholder { color: rgba(255, 255, 255, 0.45); }
+.kz-find__input:focus {
+  outline: none;
+  border-color: #ff7800;
+}
+
+.kz-count {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.kz-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 50px;
+  align-items: stretch;
+}
+
+.kz-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 10px 10px 14px;
+  border-radius: 22px;
+  background: #1c1c1c;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: transform .45s cubic-bezier(.22, 1, .36, 1), box-shadow .45s cubic-bezier(.22, 1, .36, 1), border-color .45s ease;
+}
+
+.kz-card[hidden] { display: none; }
+
+.kz-card:hover,
+.kz-card:focus-within {
+  transform: translateY(-8px);
+  border-color: rgba(255, 120, 0, 0.38);
+  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.46);
+}
+
+.kz-card__media {
+  position: relative;
+  width: 100%;
+  background: transparent;
+}
+
+.kz-card__shot {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  background: #111;
+  line-height: 0;
+}
+
+.kz-card__shot img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.kz-card__shot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(112deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
+  transform: translateX(-130%);
+  transition: transform .8s cubic-bezier(.22, 1, .36, 1);
+  pointer-events: none;
+}
+
+.kz-card:hover .kz-card__shot::after,
+.kz-card:focus-within .kz-card__shot::after {
+  transform: translateX(130%);
+}
+
+.kz-card__pill {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.62);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  transition: background .35s ease, color .35s ease;
+}
+
+.kz-card:hover .kz-card__pill,
+.kz-card:focus-within .kz-card__pill {
+  background: #ff7800;
+  color: #141414;
+}
+
+.kz-page button.kz-card__fav {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(10, 10, 10, 0.48);
+  color: #fff;
+  cursor: pointer;
+  appearance: none;
+  transition: transform .35s cubic-bezier(.22, 1, .36, 1), background .35s ease, color .35s ease;
+}
+
+.kz-page button.kz-card__fav svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.kz-page button.kz-card__fav svg path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+
+.kz-card:hover .kz-card__fav,
+.kz-card:focus-within .kz-card__fav {
+  transform: scale(1.08);
+}
+
+.kz-page button.kz-card__fav[aria-pressed="true"] {
+  color: #ff4d6a;
+  background: rgba(255, 77, 106, 0.16);
+}
+
+.kz-page button.kz-card__fav[aria-pressed="true"] svg path {
+  fill: currentColor;
+}
+
+.kz-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 14px 6px 0;
+}
+
+.kz-card__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 0 0 12px;
+  min-height: 2.6em;
+  max-height: 2.6em;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+}
+
+.kz-card__title a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.kz-card__title a:hover { color: #ff7800; }
+
+.kz-card__who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.kz-card__logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transform-origin: center;
+}
+
+.kz-card__logo svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.kz-card__logo--steam {
+  background: radial-gradient(circle at 32% 28%, #3d6d92, #171a21 68%);
+  box-shadow: inset 0 0 0 1px rgba(199, 228, 248, 0.28);
+}
+
+.kz-card__logo--steam svg { fill: #e7f4ff; }
+
+.kz-card:hover .kz-card__logo,
+.kz-card:focus-within .kz-card__logo {
+  animation: kz-logo-pop .55s cubic-bezier(.22, 1, .36, 1) forwards;
+}
+
+.kz-card__who-txt {
+  margin: 0;
+  min-width: 0;
+}
+
+.kz-card__who-k {
+  display: block;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.kz-card__who-v {
+  display: block;
+  margin-top: 2px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.kz-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-top: 16px;
+  margin-bottom: 14px;
+}
+
+.kz-card__bid {
+  flex: 1 1 7.5rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.kz-card__bid span {
+  display: block;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.kz-card__bid s {
+  display: block;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.36);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: line-through;
+}
+
+.kz-card__price {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 0 auto;
+  white-space: nowrap;
+}
+
+.kz-card__price strong {
+  display: inline-block;
+  color: #fff;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  transform-origin: right center;
+}
+
+.kz-card:hover .kz-card__price strong,
+.kz-card:focus-within .kz-card__price strong {
+  animation: kz-price-pop .5s cubic-bezier(.22, 1, .36, 1) forwards;
+  text-shadow: 0 0 18px rgba(255, 120, 0, 0.4);
+}
+
+.kz-card__gem {
+  width: 18px;
+  height: 18px;
+  fill: #ff7800;
+  flex: none;
+}
+
+.kz-card__buy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  margin-top: auto;
+  border-radius: 12px;
+  background: #ff7800;
+  color: #141414;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background .3s ease, transform .3s ease;
+}
+
+.kz-card__buy svg { width: 16px; height: 16px; display: block; fill: currentColor; }
+
+.kz-card__buy:hover,
+.kz-card:hover .kz-card__buy {
+  background: #ffa95f;
+}
+
+@keyframes kz-logo-pop {
+  0% { transform: scale(1) rotate(0deg); }
+  42% { transform: scale(1.16) rotate(-16deg); }
+  100% { transform: scale(1.06) rotate(-7deg); }
+}
+
+@keyframes kz-price-pop {
+  0% { transform: scale(1); }
+  48% { transform: scale(1.1); }
+  100% { transform: scale(1.05); }
+}
+
+.kz-empty {
+  max-width: 1320px;
+  margin: 8px auto 0;
+  padding: 0 50px;
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.kz-empty[hidden] { display: none; }
+
+@media screen and (max-width: 989px) {
+  .kz-find,
+  .kz-grid,
+  .kz-empty { padding-left: 16px; padding-right: 16px; }
+  .kz-grid { gap: 12px; }
+}
+
+@media screen and (max-width: 699px) {
+  .kz-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .kz-card { border-radius: 16px; padding: 8px 8px 12px; }
+  .kz-card__title { font-size: 13px; min-height: 2.6em; }
+  .kz-card__logo { width: 32px; height: 32px; }
+  .kz-card__logo svg { width: 18px; height: 18px; }
+  .kz-card__who-v { font-size: 12px; }
+  .kz-card__price strong { font-size: 22px; }
+  .kz-card__gem { width: 14px; height: 14px; }
+  .kz-card__buy { font-size: 13px; height: 38px; }
+  .kz-card__pill { height: 24px; font-size: 11px; top: 8px; left: 8px; }
+  .kz-page button.kz-card__fav { width: 30px; height: 30px; top: 8px; right: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kz-card,
+  .kz-card__shot::after,
+  .kz-card__pill,
+  .kz-card__logo,
+  .kz-card__price strong,
+  .kz-page button.kz-card__fav,
+  .kz-card__buy {
+    transition: none;
+    animation: none;
+  }
+
+  .kz-card:hover,
+  .kz-card:focus-within,
+  .kz-card:hover .kz-card__fav,
+  .kz-card:focus-within .kz-card__fav,
+  .kz-card:hover .kz-card__logo,
+  .kz-card:focus-within .kz-card__logo,
+  .kz-card:hover .kz-card__price strong,
+  .kz-card:focus-within .kz-card__price strong {
+    transform: none;
+    animation: none;
+  }
+}
