@@ -336,7 +336,7 @@
   <link href="css/tailwind.min.css" rel="stylesheet" type="text/css" media="all">
   <link href="css/component-cart-drawer.css" rel="stylesheet" type="text/css" media="all">
   <link href="css/sk-home-rail.css" rel="stylesheet" type="text/css" media="all">
-  <link href="css/sk-catalog.css" rel="stylesheet" type="text/css" media="all">
+  <link href="css/sk-catalog.css?v=10" rel="stylesheet" type="text/css" media="all">
 </head>
 <body class="gradient">
   <a class="skip-to-content-link button visually-hidden" href="#MainContent">Pular para o conteúdo</a>
@@ -668,10 +668,11 @@
           </div>
         </div>
       </div>
-      <div class="skig-rail__h">
-        <h1 class="skig-rail__t">Todos os jogos</h1>
-      </div>
       <div class="kz-layout">
+        <div class="kz-side">
+          <div class="skig-rail__h">
+            <h1 class="skig-rail__t">Todos os jogos</h1>
+          </div>
         <aside class="kz-filters" aria-label="Filtrar jogos">
           <p class="kz-count" data-kz-count>Mostrando jogos</p>
           <details class="kz-filter" open>
@@ -710,11 +711,11 @@
             </div>
           </details>
         </aside>
+        </div>
         <div class="kz-catalog">
-      <form class="kz-find" role="search" onsubmit="return false">
-        <label class="visually-hidden" for="kz-find" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Buscar jogo</label>
-        <input class="kz-find__input" id="kz-find" type="search" placeholder="Buscar jogo" autocomplete="off">
-      </form>
+      <figure class="kz-banner">
+        <img src="images/kz-catalog-banner.jpg?v=2" alt="Key Zone. Seu próximo jogo está aqui. As melhores keys de PC, preços especiais e entrega rápida." width="1024" height="373">
+      </figure>
       <div class="kz-grid">
         <article class="kz-card" data-name="red dead redemption 2 steam red dead redemption 2 (steam/pc)">
   <div class="kz-card__media">
@@ -1639,7 +1640,6 @@
 <script src="js/cart-drawer.js" defer></script>
 <script>
     (function () {
-      var input = document.getElementById('kz-find');
       var cards = [].slice.call(document.querySelectorAll('.kz-card'));
       var empty = document.querySelector('[data-kz-empty]');
       var count = document.querySelector('[data-kz-count]');
@@ -1741,15 +1741,13 @@
         }
       }
       function apply() {
-        var q = fold((input.value || '').trim());
         var min = Number(minRange.value);
         var max = Number(maxRange.value);
         var n = 0;
         cards.forEach(function (card) {
           var price = Number(card.getAttribute('data-price'));
           var cats = card.getAttribute('data-cats') || '';
-          var show = (!q || card.getAttribute('data-name').indexOf(q) !== -1)
-            && price >= min && price <= max
+          var show = price >= min && price <= max
             && (!cat || (' ' + cats + ' ').indexOf(' ' + cat + ' ') !== -1);
           card.hidden = !show;
           if (show) n += 1;
@@ -1764,7 +1762,6 @@
           btn.setAttribute('aria-pressed', on ? 'false' : 'true');
         });
       });
-      input.addEventListener('input', apply);
       minRange.addEventListener('input', function () {
         clampRanges('min');
         minRange.style.zIndex = '5';

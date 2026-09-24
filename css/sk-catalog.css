@@ -5,8 +5,17 @@
 
 .kz-page { position: relative; }
 
-.kz-page > .skig-rail__h,
-.kz-page > .kz-layout { position: relative; z-index: 1; }
+.kz-page > .kz-layout { position: relative; z-index: 2; }
+
+.kz-page.sk-hrail .kz-side > .skig-rail__h {
+  max-width: none;
+  margin: 0 0 22px;
+  padding: 0;
+}
+
+.kz-page.sk-hrail .kz-side .skig-rail__t {
+  line-height: 1;
+}
 
 .kz-glow {
   position: absolute;
@@ -163,13 +172,14 @@
   gap: 36px;
   align-items: start;
   max-width: 1320px;
-  margin: 0 auto;
+  margin: 36px auto 0;
   padding: 0 50px;
 }
 
 .kz-filters {
   position: sticky;
   top: 18px;
+  z-index: 2;
 }
 
 .kz-count {
@@ -179,7 +189,7 @@
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 1.3;
+  line-height: 1;
 }
 
 .kz-filter {
@@ -375,30 +385,42 @@
   outline-offset: 2px;
 }
 
-.kz-find {
-  margin: 0 0 18px;
+.kz-banner {
+  position: relative;
+  z-index: 0;
+  margin: 0 0 40px;
+  border-radius: 18px;
+  line-height: 0;
 }
 
-.kz-find__input {
-  width: min(420px, 100%);
-  height: 46px;
-  padding: 0 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #1e1e1e;
-  color: #fff;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 500;
+.kz-banner::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: -22px;
+  bottom: -18px;
+  left: -22px;
+  border-radius: 32px;
+  background:
+    radial-gradient(55% 75% at 18% 50%, rgba(255, 130, 20, 0.38), transparent 70%),
+    radial-gradient(48% 70% at 84% 45%, rgba(255, 80, 0, 0.28), transparent 68%);
+  filter: blur(18px);
+  pointer-events: none;
 }
 
-.kz-find__input::placeholder { color: rgba(255, 255, 255, 0.45); }
-.kz-find__input:focus {
-  outline: none;
-  border-color: #ff7800;
+.kz-banner img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
 }
 
 .kz-grid {
+  position: relative;
+  z-index: 2;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
@@ -746,6 +768,7 @@
 
 @media screen and (max-width: 860px) {
   .kz-layout { grid-template-columns: 1fr; }
+  .kz-banner { margin-bottom: 28px; }
 }
 
 @media screen and (max-width: 699px) {
