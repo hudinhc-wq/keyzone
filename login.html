@@ -218,6 +218,26 @@
       box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
     }
 
+    .home {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 52px;
+      padding: 0 22px 0 16px;
+      border-radius: 0 0 18px 0;
+      background: var(--orange);
+      color: #fff;
+      font: 700 15px/1 Poppins, sans-serif;
+      text-decoration: none;
+      box-shadow: 0 14px 32px rgba(255, 122, 0, 0.48);
+    }
+    .home:hover { background: var(--orange-hot); color: #fff; }
+    .home svg { width: 18px; height: 18px; flex: none; }
+
     .brand {
       display: inline-flex;
       margin-bottom: 22px;
@@ -467,6 +487,12 @@
     </div>
 
     <div class="shell">
+      <a class="home" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6"></path>
+        </svg>
+        Voltar ao início
+      </a>
       <section class="panel" aria-labelledby="login-title">
         <a class="brand" href="index.html">
           <img src="images/keyzone-logo.png" alt="Key Zone">
@@ -572,6 +598,11 @@
 
   <script>
     (function () {
+      // #region agent log
+      var homeBtn = document.querySelector("a.home");
+      var homeBox = homeBtn ? homeBtn.getBoundingClientRect() : null;
+      fetch('http://127.0.0.1:7593/ingest/053c8dae-89c2-4fb4-8edb-71c1fe56485c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'07b148'},body:JSON.stringify({sessionId:'07b148',runId:'post-fix',hypothesisId:'A',location:'login.html:home',message:'home button presence',data:{exists:!!homeBtn,parent:homeBtn&&homeBtn.parentElement?homeBtn.parentElement.className:null,text:homeBtn?homeBtn.textContent.trim():'',top:homeBox?Math.round(homeBox.top):null,left:homeBox?Math.round(homeBox.left):null,width:homeBox?Math.round(homeBox.width):null,height:homeBox?Math.round(homeBox.height):null},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       var stage = document.querySelector(".stage");
       var grid = document.querySelector(".floor__grid");
       if (!stage || !grid || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;

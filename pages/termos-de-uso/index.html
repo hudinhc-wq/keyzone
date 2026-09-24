@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Termos de Uso | Keyzone</title>
+  <link rel="icon" type="image/png" href="/images/keyzone-icon.png">
+  <link rel="canonical" href="/pages/termos-de-uso">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap">
+  <style>
+    :root {
+      --bg: #121212;
+      --surface: #1c1c1c;
+      --line: rgba(255, 255, 255, 0.08);
+      --text: #f4f4f5;
+      --muted: rgba(255, 255, 255, 0.72);
+      --faint: rgba(255, 255, 255, 0.48);
+      --orange: #ff7800;
+      --orange-soft: rgba(255, 120, 0, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Poppins, system-ui, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.65;
+    }
+    a { color: inherit; }
+    img { display: block; max-width: 100%; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #161616;
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar__inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .topbar__logo { height: 52px; width: auto; }
+    .topbar__nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .topbar__nav a {
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.82);
+      padding: 10px 14px;
+      border-radius: 999px;
+    }
+    .topbar__nav a:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+    .topbar__nav .is-cta {
+      background: var(--orange);
+      color: #fff;
+    }
+    .topbar__nav .is-cta:hover { background: #ff8f26; color: #fff; }
+
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    .kicker {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--orange);
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 44px);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+    .lead {
+      margin: 0 0 36px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .doc {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    section {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px 24px 8px;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+    p { margin: 0 0 14px; color: var(--muted); font-size: 15px; }
+    ul {
+      margin: 0 0 16px;
+      padding: 0;
+      list-style: none;
+    }
+    li {
+      position: relative;
+      margin: 0 0 8px;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.62em;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--orange);
+    }
+    .note {
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: var(--orange-soft);
+      border: 1px solid rgba(255, 120, 0, 0.28);
+      color: #ffe7d1;
+      font-size: 14.5px;
+    }
+    .note strong { color: #fff; }
+    h3 {
+      margin: 4px 0 10px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .foot {
+      background: #161616;
+      border-top: 1px solid var(--line);
+    }
+    .foot__inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .foot small { color: var(--faint); font-size: 13px; }
+    .foot nav { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+    .foot a {
+      color: rgba(255, 255, 255, 0.78);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .foot a:hover,
+    .foot a[aria-current="page"] { color: #fff; }
+
+    @media (max-width: 640px) {
+      .topbar__inner { padding: 12px 16px; }
+      .topbar__logo { height: 42px; }
+      .topbar__nav a { padding: 8px 10px; font-size: 13px; }
+      .page { padding: 32px 16px 56px; }
+      section { padding: 18px 16px 4px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a href="/" aria-label="Keyzone">
+        <img class="topbar__logo" src="/images/keyzone-logo.png" alt="Keyzone" width="196" height="66">
+      </a>
+      <nav class="topbar__nav" aria-label="Principal">
+        <a href="/produtos.html">Catálogo</a>
+        <a class="is-cta" href="/login.html">Entrar</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <p class="kicker">Políticas</p>
+    <h1>Termos de Uso</h1>
+    <p class="lead">Estes são os termos e condições gerais para o uso dos serviços prestados por Keyzone.</p>
+
+    <div class="doc">
+      <section>
+        <h2>1. Sobre o Produto</h2>
+        <p>A Keyzone comercializa produtos digitais, incluindo chaves de ativação (Keys), entregues exclusivamente por meio eletrônico, conforme informado na página de cada produto.</p>
+        <p>As keys comercializadas não são fornecidas oficialmente pela Steam. Trata-se de chaves de região chinesa, que possuem algumas limitações de uso.</p>
+        <h3>Limitações</h3>
+        <ul>
+          <li>Não é compatível com o Modo Família da Steam;</li>
+          <li>Não funciona em serviços de Cloud Gaming;</li>
+          <li>Não possui compatibilidade com Linux;</li>
+          <li>Não funciona em dispositivos móveis.</li>
+        </ul>
+        <p>As keys são destinadas exclusivamente para computadores com sistema operacional Windows.</p>
+        <p class="note"><strong>Importante:</strong> caso o computador seja formatado ou substituído, os jogos permanecerão vinculados à conta Steam utilizada na ativação e poderão ser baixados novamente normalmente.</p>
+      </section>
+
+      <section>
+        <h2>2. Leitura da Descrição do Produto</h2>
+        <p>Antes de finalizar a compra, é responsabilidade do cliente ler atentamente todas as informações presentes no anúncio, incluindo, quando aplicável:</p>
+        <ul>
+          <li>Plataforma;</li>
+          <li>Edição;</li>
+          <li>Região de ativação;</li>
+          <li>Requisitos mínimos e recomendados;</li>
+          <li>Instruções de ativação;</li>
+          <li>Limitações e observações do produto.</li>
+        </ul>
+        <p>A Keyzone não se responsabiliza por compras realizadas sem a leitura completa da descrição.</p>
+      </section>
+
+      <section>
+        <h2>3. Responsabilidade do Comprador</h2>
+        <p>Antes da compra, o cliente deve verificar se:</p>
+        <ul>
+          <li>O jogo é compatível com seu computador;</li>
+          <li>A plataforma adquirida é a desejada;</li>
+          <li>A região de ativação é compatível com seu uso;</li>
+          <li>Seu computador atende aos requisitos mínimos do jogo.</li>
+        </ul>
+        <p>Problemas decorrentes de incompatibilidade, compra equivocada, uso incorreto ou falta de leitura da descrição poderão impedir a utilização adequada do produto.</p>
+      </section>
+
+      <section>
+        <h2>4. Suporte</h2>
+        <p>Caso ocorra qualquer problema relacionado à entrega ou ativação da key, o cliente deverá entrar em contato com o suporte oficial da Keyzone.</p>
+        <p>Para que a solicitação seja analisada, poderá ser necessário o envio de evidências, como capturas de tela (prints), vídeos ou outras informações que permitam verificar o problema.</p>
+        <p>Solicitações sem informações suficientes ou sem a colaboração do cliente poderão não ser concluídas.</p>
+      </section>
+
+      <section>
+        <h2>5. Troca, Correção ou Reembolso</h2>
+        <p>As solicitações de troca, correção ou reembolso serão analisadas nos seguintes casos:</p>
+        <ul>
+          <li>Chave inválida;</li>
+          <li>Produto enviado incorretamente;</li>
+          <li>Falha comprovada na entrega;</li>
+          <li>Problema de ativação comprovadamente relacionado ao produto.</li>
+        </ul>
+        <p>Em regra, não serão aceitas solicitações motivadas por:</p>
+        <ul>
+          <li>Compra realizada por engano;</li>
+          <li>Arrependimento após a entrega de produto digital, quando iniciado o fornecimento, conforme legislação aplicável;</li>
+          <li>Insatisfação com o jogo;</li>
+          <li>Incompatibilidade do computador;</li>
+          <li>Falta de leitura da descrição do anúncio;</li>
+          <li>Erro de utilização por parte do comprador.</li>
+        </ul>
+        <p>Cada solicitação será analisada individualmente.</p>
+      </section>
+
+      <section>
+        <h2>6. Garantia</h2>
+        <p>A garantia oferecida pela Keyzone cobre exclusivamente problemas comprovados relacionados à entrega ou à ativação da key, desde que o produto tenha sido utilizado conforme as instruções fornecidas.</p>
+        <p>A garantia não cobre situações decorrentes de:</p>
+        <ul>
+          <li>Uso inadequado do produto;</li>
+          <li>Erro do comprador;</li>
+          <li>Incompatibilidade de hardware ou software;</li>
+          <li>Descumprimento das instruções de ativação;</li>
+          <li>Alterações realizadas pelo próprio usuário.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>7. Política Antifraude</h2>
+        <p>Com o objetivo de proteger a loja e seus clientes, a Keyzone poderá adotar medidas em casos de suspeita de fraude, incluindo:</p>
+        <ul>
+          <li>Solicitação de informações adicionais;</li>
+          <li>Recusa de atendimento em casos de tentativa comprovada de fraude;</li>
+          <li>Bloqueio de novos atendimentos;</li>
+          <li>Cancelamento da garantia de suporte quando houver comprovação de má-fé;</li>
+          <li>Adoção das medidas administrativas ou legais cabíveis em caso de chargeback fraudulento, envio de informações falsas ou outras tentativas de obtenção indevida de vantagens.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>8. Aceitação dos Termos</h2>
+        <p>Ao concluir a compra, o cliente declara que leu, compreendeu e concorda com estes Termos e Condições, bem como com todas as informações constantes na descrição do produto adquirido.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <div class="foot__inner">
+      <small>© 2026 Keyzone</small>
+      <nav aria-label="Políticas">
+        <a href="/pages/termos-de-uso" aria-current="page">Termos de Uso</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
