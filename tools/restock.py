@@ -149,13 +149,25 @@ def appid_from_images(images):
     return None
 
 
+def key_values(keys):
+    out = []
+    for k in keys or []:
+        if isinstance(k, dict):
+            v = k.get("value") or k.get("code") or k.get("key")
+        else:
+            v = k
+        if v:
+            out.append(str(v))
+    return out
+
+
 def restock_sku(st, ck, keymap, state, product_id, hint_title=None):
     if product_id in (state.get("ck_404") or []):
         return "ck_404"
     gs, got = req_retry(ST_BASE + "/product/" + product_id, token=st)
     if gs != 200 or not isinstance(got, dict):
         return "get_fail_%s" % gs
-    have = got.get("license_keys") or []
+    have = key_values(got.get("license_keys"))
     if len(have) >= MIN_STOCK:
         return "ok_stock"
     title = (got.get("title") or hint_title or "").strip()
@@ -187,24 +199,27 @@ def restock_sku(st, ck, keymap, state, product_id, hint_title=None):
         return "ck_404"
     if cs != 200 or not isinstance(gen, dict):
         return "ck_fail_%s" % cs
-    codes = [k.get("code") for k in (gen.get("keys") or []) if k.get("code")]
+    codes = key_values(gen.get("keys") or gen.get("data") or [])
     if not codes:
         return "ck_no_code"
     gs2, got2 = req_retry(ST_BASE + "/product/" + product_id, token=st)
-    existing = []
+    existing = have
     if gs2 == 200 and isinstance(got2, dict):
-        existing = [k for k in (got2.get("license_keys") or []) if k]
+        existing = key_values(got2.get("license_keys"))
         if len(existing) >= MIN_STOCK:
             return "ok_stock"
     merged = existing + codes
-    ps, _patched = req_retry(
+    ps, patched = req_retry(
         ST_BASE + "/product/" + product_id,
         method="PATCH",
         token=st,
         body={"is_bundle": False, "license_keys": merged},
     )
     if ps != 200:
-        return "patch_fail_%s" % ps
+        msg = ""
+        if isinstance(patched, dict):
+            msg = str(patched.get("message") or patched.get("error") or "")[:120]
+        return "patch_fail_%s %s" % (ps, msg)
     charged = int(gen.get("totalCents") or 0)
     state["charged_cents"] = int(state.get("charged_cents") or 0) + charged
     log(
