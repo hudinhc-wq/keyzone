@@ -1,1 +1,10 @@
 .cursor/
+.centralkey.json
+.env
+.env.*
+_tmp_copy_catalog.py
+.centralkey-stock-report.json
+.key-map.json
+.restock-state.json
+tools/restock.log
+tools/*.tmp
