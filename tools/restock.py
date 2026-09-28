@@ -27,7 +27,7 @@ TMP = os.path.join(os.environ.get("TEMP", "."), "kz-ck")
 ST_BASE = "https://api.selltrust.com.br/api/v1"
 CK_GEN = "https://centralkey.com.br/api/v1/keys/generate"
 STEAM_APP_RE = re.compile(r"steam/apps/(\d+)", re.I)
-MIN_STOCK = 10
+MIN_STOCK = 100
 UA = "KeyzzoneRestock/1.0"
 
 
@@ -183,48 +183,72 @@ def restock_sku(st, ck, keymap, state, product_id, hint_title=None):
         "app_id": str(app_id),
         "game": info.get("game") or (got.get("parent") or {}).get("title") or title,
     }
-    need = MIN_STOCK - len(have)
-    cs, gen = req_retry(
-        CK_GEN,
-        method="POST",
-        token=ck,
-        body={"appId": str(app_id), "quantity": need},
-    )
-    if cs == 402:
-        return "no_balance"
-    if cs == 404:
-        state.setdefault("ck_404", [])
-        if product_id not in state["ck_404"]:
-            state["ck_404"].append(product_id)
-        return "ck_404"
-    if cs != 200 or not isinstance(gen, dict):
-        return "ck_fail_%s" % cs
-    codes = key_values(gen.get("keys") or gen.get("data") or [])
-    if not codes:
-        return "ck_no_code"
-    gs2, got2 = req_retry(ST_BASE + "/product/" + product_id, token=st)
-    existing = have
-    if gs2 == 200 and isinstance(got2, dict):
-        existing = key_values(got2.get("license_keys"))
-        if len(existing) >= MIN_STOCK:
-            return "ok_stock"
-    merged = existing + codes
-    ps, patched = req_retry(
-        ST_BASE + "/product/" + product_id,
-        method="PATCH",
-        token=st,
-        body={"is_bundle": False, "license_keys": merged},
-    )
-    if ps != 200:
-        msg = ""
-        if isinstance(patched, dict):
-            msg = str(patched.get("message") or patched.get("error") or "")[:120]
-        return "patch_fail_%s %s" % (ps, msg)
-    charged = int(gen.get("totalCents") or 0)
+    added_n = 0
+    charged = 0
+    while True:
+        need = MIN_STOCK - len(have)
+        if need <= 0:
+            break
+        qty = need
+        cs, gen = req_retry(
+            CK_GEN,
+            method="POST",
+            token=ck,
+            body={"appId": str(app_id), "quantity": qty},
+        )
+        if cs != 200 and qty > 10:
+            qty = 10
+            cs, gen = req_retry(
+                CK_GEN,
+                method="POST",
+                token=ck,
+                body={"appId": str(app_id), "quantity": qty},
+            )
+        if cs == 402:
+            return "no_balance"
+        if cs == 404:
+            state.setdefault("ck_404", [])
+            if product_id not in state["ck_404"]:
+                state["ck_404"].append(product_id)
+            return "ck_404"
+        if cs != 200 or not isinstance(gen, dict):
+            return "ck_fail_%s" % cs
+        codes = key_values(gen.get("keys") or gen.get("data") or [])
+        if not codes:
+            return "ck_no_code"
+        gs2, got2 = req_retry(ST_BASE + "/product/" + product_id, token=st)
+        existing = have
+        if gs2 == 200 and isinstance(got2, dict):
+            existing = key_values(got2.get("license_keys"))
+            if len(existing) >= MIN_STOCK:
+                have = existing
+                break
+        merged = existing + codes
+        ps, patched = req_retry(
+            ST_BASE + "/product/" + product_id,
+            method="PATCH",
+            token=st,
+            body={"is_bundle": False, "license_keys": merged},
+        )
+        if ps != 200:
+            msg = ""
+            if isinstance(patched, dict):
+                msg = str(patched.get("message") or patched.get("error") or "")[:120]
+            return "patch_fail_%s %s" % (ps, msg)
+        added_n += len(codes)
+        charged += int(gen.get("totalCents") or 0)
+        have = merged
+        if qty < need:
+            time.sleep(0.25)
+            continue
+        break
+
+    if added_n <= 0:
+        return "ok_stock"
     state["charged_cents"] = int(state.get("charged_cents") or 0) + charged
     log(
         "RESTOCK %s app=%s added=%s stock=%s cents=%s"
-        % (keymap[product_id].get("game") or product_id, app_id, len(codes), len(merged), charged)
+        % (keymap[product_id].get("game") or product_id, app_id, added_n, len(have), charged)
     )
     return "restocked"
 
