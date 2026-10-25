@@ -1,0 +1,638 @@
+{% capture order_page_title %}{{ order.internal_id | prepend: 'Detalhes do Pedido - ' }}{% endcapture %}
+{% capture order_page_scripts %}https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js{% if order.chat %}{% if order.status == 'APPROVED' or order.status == 'COMPLETED' %}|||https://cdn.socket.io/4.7.4/socket.io.min.js|||{{ 'support.js' | asset }}{% endif %}{% endif %}{% endcapture %}
+
+{% case order.status %}
+    {% when 'PENDING' %}
+        {% assign order_st_icon = 'clock' %}
+        {% assign order_st_label = 'Pagamento pendente' %}
+        {% assign order_st_text = 'text-amber-400' %}
+        {% assign order_st_bg = 'bg-amber-500/10' %}
+        {% assign order_st_border = 'border-amber-500/20' %}
+    {% when 'APPROVED' %}
+        {% assign order_st_icon = 'check-circle-2' %}
+        {% assign order_st_label = 'Pagamento aprovado!' %}
+        {% assign order_st_text = 'text-emerald-400' %}
+        {% assign order_st_bg = 'bg-emerald-500/10' %}
+        {% assign order_st_border = 'border-emerald-500/20' %}
+    {% when 'COMPLETED' %}
+        {% assign order_st_icon = 'check-circle-2' %}
+        {% assign order_st_label = 'Pedido concluído' %}
+        {% assign order_st_text = 'text-emerald-400' %}
+        {% assign order_st_bg = 'bg-emerald-500/10' %}
+        {% assign order_st_border = 'border-emerald-500/20' %}
+    {% when 'CANCELED' %}
+        {% assign order_st_icon = 'x-circle' %}
+        {% assign order_st_label = 'Pagamento cancelado' %}
+        {% assign order_st_text = 'text-red-400' %}
+        {% assign order_st_bg = 'bg-red-500/10' %}
+        {% assign order_st_border = 'border-red-500/20' %}
+    {% when 'REFUNDED' %}
+        {% assign order_st_icon = 'rotate-ccw' %}
+        {% assign order_st_label = 'Pagamento reembolsado' %}
+        {% assign order_st_text = 'text-yellow-400' %}
+        {% assign order_st_bg = 'bg-yellow-500/10' %}
+        {% assign order_st_border = 'border-yellow-500/20' %}
+    {% when 'CHARGED_BACK' %}
+        {% assign order_st_icon = 'rotate-ccw' %}
+        {% assign order_st_label = 'Pagamento contestado' %}
+        {% assign order_st_text = 'text-purple-400' %}
+        {% assign order_st_bg = 'bg-purple-500/10' %}
+        {% assign order_st_border = 'border-purple-500/20' %}
+{% endcase %}
+{% assign order_payment_link = '' %}
+{% if order.payment_data %}
+    {% assign order_payment_link = order.payment_data.payment_link | default: '' %}
+{% endif %}
+
+{% layout 'layouts/layout', page_title: order_page_title, scripts: order_page_scripts %}
+
+<section class="container py-8">
+    <div class="max-w-screen-lg mx-auto">
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex flex-col gap-1.5">
+                <div class="flex items-center gap-2">
+                    <span
+                        class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border {{ order_st_text }} {{ order_st_bg }} {{ order_st_border }}"
+                    >
+                        <i data-lucide="{{ order_st_icon }}" class="size-3"></i>
+                        {{ order_st_label }}
+                    </span>
+                    <span class="text-xs text-muted-foreground">#{{ order.internal_id }}</span>
+                </div>
+                <h1 class="text-2xl font-bold">Obrigado pela sua compra!</h1>
+                <p class="text-sm text-muted-foreground">
+                    Os detalhes do seu pedido e os itens de entrega estão listados abaixo.
+                </p>
+            </div>
+        </div>
+        <div class="grid lg:grid-cols-[1fr_320px] gap-6">
+            <div class="space-y-4">
+                <div class="border bg-background rounded-lg p-5">
+                    <h2 class="text-sm font-semibold mb-4">Sua Entrega</h2>
+                    <div class="space-y-3">
+                        {% for item in order.items %}
+                            {% assign license_keys = item.license_keys | default: item.keys %}
+                            {% assign license_keys_count = license_keys | size %}
+                            <div
+                                class="border bg-background rounded-lg p-4 space-y-3"
+                                data-order-item
+                                data-product-id="{{ item.product_id }}"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <div class="size-10 rounded-md border overflow-hidden shrink-0 bg-muted">
+                                        {% if item.image %}
+                                            <img
+                                                src="{{ item.image }}"
+                                                data-order-thumb
+                                                class="size-full object-cover"
+                                                alt=""
+                                            />
+                                        {% else %}
+                                            <div class="size-full flex items-center justify-center text-muted-foreground">
+                                                <i data-lucide="package" class="size-5"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex flex-col gap-0.5 min-w-0">
+                                        <h3 class="font-semibold text-sm leading-tight truncate" data-order-title>{{ item.title }}</h3>
+                                        <p class="text-xs text-muted-foreground hidden" data-order-variant></p>
+                                        <p class="text-xs text-muted-foreground">Quantidade: {{ item.quantity }}</p>
+                                    </div>
+                                </div>
+                                {% if license_keys_count > 0 %}
+                                    <div class="space-y-2 pt-2 border-t">
+                                        <div class="flex items-center justify-between">
+                                            <p class="text-xs font-medium text-muted-foreground">Dados de Acesso</p>
+                                            <button
+                                                type="button"
+                                                onclick="copyAllKeys(this)"
+                                                class="text-xs text-primary hover:text-primary/80 font-medium transition-colors flex items-center gap-1"
+                                            >
+                                                <i data-lucide="copy" class="size-3"></i>
+                                                Copiar Todos
+                                            </button>
+                                        </div>
+                                        <div
+                                            class="border rounded-md overflow-hidden divide-y max-h-[168px] overflow-y-auto custom-scrollbar"
+                                        >
+                                            {% for key in license_keys %}
+                                                {% assign key_text = key.value | default: key.code | default: key.key | default: key %}
+                                                <div
+                                                    class="flex items-center gap-3 px-3 py-2.5 group bg-background hover:bg-muted transition-colors"
+                                                >
+                                                    <span class="text-xs font-medium text-muted-foreground w-5 shrink-0">{{ forloop.index }}.</span>
+                                                    <code class="flex-1 text-xs font-mono break-all select-all" data-license-key data-key-json="{{ key | json | escape }}">{{ key_text }}</code>
+                                                    <button
+                                                        type="button"
+                                                        onclick="copySingle(this)"
+                                                        class="p-1.5 rounded-md text-muted-foreground hover:text-primary transition-all shrink-0"
+                                                    >
+                                                        <i data-lucide="copy" class="size-3.5 copy-icon"></i>
+                                                        <i data-lucide="check" class="size-3.5 check-icon hidden text-emerald-400"></i>
+                                                    </button>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {% if order.status == 'APPROVED' and item.instructions %}
+                                    <div class="space-y-2 pt-2 border-t">
+                                        <p class="text-xs font-medium text-muted-foreground">Instruções</p>
+                                        <div
+                                            class="prose prose-sm max-w-none prose-p:text-[13.5px] prose-li:text-[13.5px] prose-p:leading-relaxed"
+                                            data-order-instructions
+                                        >
+                                            {{ item.instructions | raw }}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {% if license_keys_count == 0 %}
+                                    {% if order.status == 'PENDING' %}
+                                    <div class="flex items-center gap-2 p-3 rounded-md bg-muted text-muted-foreground text-xs">
+                                        <i data-lucide="loader-2" class="size-3.5 animate-spin shrink-0"></i>
+                                        Aguardando o pagamento para liberar a key.
+                                    </div>
+                                    {% elsif order.status == 'APPROVED' or order.status == 'COMPLETED' %}
+                                    <div class="flex flex-col gap-1 p-3 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs" data-missing-keys>
+                                        <p class="font-medium">Sua key ainda não apareceu neste pedido.</p>
+                                        <p class="text-amber-200/80">{% if order.chat %}Abra o chat deste pedido abaixo que a gente envia na hora.{% else %}Fale no Instagram @keyzzone.com.br que a gente envia na hora.{% endif %} O estoque do site não entrega sozinho se a key não tiver sido vinculada ao pedido.</p>
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% assign pack_src = order.utm_source | default: '' %}
+                    {% assign pack_campaign = order.utm_campaign | default: '' %}
+                    {% assign pack_coupon = order.coupon_code | default: '' %}
+                    {% assign pack_gift_on = false %}
+                    {% if pack_src == 'pack' or pack_campaign == 'PACK20' or pack_coupon == 'PACK20' %}
+                        {% assign pack_gift_on = true %}
+                    {% endif %}
+                    <div
+                        class="mt-4 rounded-xl border-2 border-emerald-400/60 bg-emerald-500/10 p-4 space-y-3{% unless pack_gift_on %} hidden{% endunless %}"
+                        data-pack-gifts
+                    >
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="space-y-1">
+                                <span class="inline-flex items-center h-5 px-2 rounded-full bg-emerald-400 text-emerald-950 text-[10px] font-extrabold tracking-[0.14em] uppercase">Brinde</span>
+                                <p class="text-sm font-bold text-emerald-300">Keys de brinde do pack</p>
+                                <p class="text-xs text-emerald-100/75">Essas keys são o brinde. Elas não entram no valor pago.</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-emerald-100/70" data-pack-gifts-wait>
+                            As keys grátis entram aqui em até 5 minutos após o Pix. Atualize a página se ainda não aparecerem.
+                        </p>
+                        <div class="hidden space-y-2" data-pack-gifts-list></div>
+                    </div>
+                </div>
+                {% if order.status == 'APPROVED' or order.status == 'COMPLETED' %}
+                    {% if order.chat %}
+                    {% render 'components/chat-widget', order: order, store: store, customer: customer %}
+                    {% else %}
+                    <div class="border rounded-lg p-4 bg-background flex flex-col gap-2">
+                        <p class="text-sm font-medium">Precisa de ajuda neste pedido?</p>
+                        <p class="text-xs text-muted-foreground">O chat da SellTrust só existe quando o pedido gera uma conversa. Enquanto isso, fale com a gente no Instagram.</p>
+                        <a href="https://www.instagram.com/keyzzone.com.br/" target="_blank" rel="noopener noreferrer" class="text-sm text-primary underline underline-offset-2">@keyzzone.com.br</a>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="space-y-4">
+                <div class="border bg-background rounded-lg p-4">
+                    <h4 class="text-sm font-semibold mb-3">Resumo do Pedido</h4>
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-muted-foreground">Valor</span>
+                            <span class="font-medium">{{ order.price | format_price }}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-muted-foreground">Método</span>
+                            <div class="flex items-center gap-1.5">
+                                <img
+                                    src="{{ '/images/payment_methods/pix.svg' | public_url }}"
+                                    alt="Pix"
+                                    class="size-4"
+                                />
+                                <span class="font-medium text-xs">Pix</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-muted-foreground">Pedido</span>
+                            <span class="font-medium text-xs">#{{ order.internal_id }}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-muted-foreground">Data</span>
+                            <span class="font-medium text-xs">{{ order.created_at | date: '%d/%m/%Y' }}</span>
+                        </div>
+                        {% if order.coupon_code %}
+                            <div class="border-t pt-2.5 mt-1">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-muted-foreground flex items-center gap-1">
+                                        <i data-lucide="ticket" class="size-3.5"></i>
+                                        Cupom
+                                    </span>
+                                    <span class="font-medium text-xs text-primary">{{ order.coupon_code }}</span>
+                                </div>
+                                {% if order.coupon_value %}
+                                    <div class="flex items-center justify-between text-sm mt-1.5">
+                                        <span class="text-muted-foreground">Desconto</span>
+                                        <span class="font-medium text-xs text-emerald-400">
+                                            {% if order.coupon_type == 'PERCENTAGE' %}
+                                                -{{ order.coupon_value }}%
+                                            {% else %}
+                                                -{{ order.coupon_value | format_price }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="border bg-background rounded-lg p-4">
+                    <h4 class="text-sm font-semibold mb-3">Dados do Cliente</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-2">
+                            <i data-lucide="user" class="size-4 text-primary shrink-0 mt-0.5"></i>
+                            <div class="flex flex-col">
+                                <span class="text-xs text-muted-foreground">Nome Completo</span>
+                                <span class="text-sm font-medium">{{ order.client_name }}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i data-lucide="mail" class="size-4 text-primary shrink-0 mt-0.5"></i>
+                            <div class="flex flex-col">
+                                <span class="text-xs text-muted-foreground">E-mail</span>
+                                <span class="text-sm font-medium break-all">{{ order.client_email }}</span>
+                            </div>
+                        </div>
+                        {% if order.client_document %}
+                            <div class="flex items-start gap-2">
+                                <i data-lucide="fingerprint" class="size-4 text-primary shrink-0 mt-0.5"></i>
+                                <div class="flex flex-col">
+                                    <span class="text-xs text-muted-foreground">CPF / Documento</span>
+                                    <span class="text-sm font-medium">{{ order.client_document }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-lg px-3 py-2.5">
+                    <i data-lucide="shield-check" class="size-4 text-primary shrink-0"></i>
+                    <p class="text-xs text-primary font-medium">Compra 100% segura e protegida.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+    function unwrapKeyValue(raw) {
+        if (raw == null || raw === "") return "";
+        if (typeof raw === "object") {
+            return unwrapKeyValue(raw.value || raw.code || raw.key || raw.license_key || raw.license || "");
+        }
+        var text = String(raw).trim().replace(/^\uFEFF/, "");
+        if (!text || text === "[object Object]") return "";
+        for (var i = 0; i < 5; i++) {
+            var first = text.charAt(0);
+            var last = text.charAt(text.length - 1);
+            if (first === "{" || first === "[" || first === '"') {
+                try {
+                    var parsed = JSON.parse(text);
+                    if (typeof parsed === "string") {
+                        text = String(parsed).trim();
+                        continue;
+                    }
+                    return unwrapKeyValue(parsed);
+                } catch (e) {
+                    if (text.length > 1 && ((first === '"' && last === '"') || (first === "'" && last === "'"))) {
+                        text = text.slice(1, -1).trim();
+                        continue;
+                    }
+                    break;
+                }
+            }
+            if (text.length > 1 && first === "'" && last === "'") {
+                text = text.slice(1, -1).trim();
+                continue;
+            }
+            break;
+        }
+        return text;
+    }
+    function unwrapLicenseKeys() {
+        document.querySelectorAll("[data-license-key]").forEach(function (el) {
+            const fromJson = unwrapKeyValue(el.getAttribute("data-key-json"));
+            const fromText = unwrapKeyValue(el.textContent);
+            const value = fromJson || fromText;
+            if (value) el.textContent = value;
+        });
+    }
+    function keyRowsFromItem(item) {
+        const rows = item && (item.license_keys || item.keys || item.licenses || []);
+        return Array.isArray(rows) ? rows : [];
+    }
+    function escapeKeyText(value) {
+        return String(value || "").replace(/[<>&]/g, "");
+    }
+    function parseGiftNote(content) {
+        const text = String(content || "");
+        if (text.indexOf("[KZ-GIFT]") === -1) return [];
+        return text
+            .split(/\n+/)
+            .map(function (line) {
+                const clean = line.replace("[KZ-GIFT]", "").trim();
+                const idx = clean.lastIndexOf(": ");
+                if (idx < 1) return null;
+                const title = clean.slice(0, idx).trim();
+                const key = clean.slice(idx + 2).trim();
+                if (!title || !key || title.toLowerCase().indexOf("keys de brinde") === 0) return null;
+                return { title: title, key: key };
+            })
+            .filter(Boolean);
+    }
+    function fillPackGifts(order) {
+        const mount = document.querySelector("[data-pack-gifts]");
+        if (!mount || !order) return;
+        const notes = order.notes || order.order_notes || [];
+        let rows = [];
+        (Array.isArray(notes) ? notes : []).forEach(function (note) {
+            rows = rows.concat(parseGiftNote(note && (note.content || note)));
+        });
+        if (!rows.length && typeof order.notes === "string") rows = parseGiftNote(order.notes);
+        const packOrder =
+            String(order.utm_source || "").toLowerCase() === "pack" ||
+            String(order.utm_campaign || "").toUpperCase() === "PACK20" ||
+            String(order.coupon_code || "").toUpperCase() === "PACK20";
+        if (rows.length || packOrder) mount.classList.remove("hidden");
+        if (!rows.length) return;
+        const list = mount.querySelector("[data-pack-gifts-list]");
+        const wait = mount.querySelector("[data-pack-gifts-wait]");
+        if (wait) wait.classList.add("hidden");
+        if (!list) return;
+        list.classList.remove("hidden");
+        list.innerHTML = rows
+            .map(function (row) {
+                return (
+                    '<div class="rounded-lg border border-emerald-400/35 bg-background/80 p-3 space-y-2">' +
+                    '<div class="flex items-center gap-2">' +
+                    '<span class="inline-flex items-center h-5 px-2 rounded-full bg-emerald-400 text-emerald-950 text-[10px] font-extrabold tracking-[0.12em] uppercase">Brinde</span>' +
+                    '<p class="text-xs font-semibold truncate">' +
+                    escapeKeyText(row.title) +
+                    "</p></div>" +
+                    '<div class="flex items-center gap-2">' +
+                    '<code class="flex-1 text-xs font-mono break-all select-all" data-license-key>' +
+                    escapeKeyText(row.key) +
+                    "</code>" +
+                    '<button type="button" onclick="copySingle(this)" class="p-1.5 rounded-md text-emerald-300 hover:text-emerald-100 shrink-0" aria-label="Copiar key de brinde">' +
+                    '<i data-lucide="copy" class="size-3.5 copy-icon"></i>' +
+                    '<i data-lucide="check" class="size-3.5 check-icon hidden text-emerald-400"></i>' +
+                    "</button></div>" +
+                    '<p class="text-[11px] text-emerald-200/75">Key de brinde — não foi cobrada no pack.</p></div>'
+                );
+            })
+            .join("");
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+    }
+    function fillMissingKeys(items) {
+        if (!Array.isArray(items) || !items.length) return;
+        const cards = document.querySelectorAll("[data-order-item]");
+        cards.forEach(function (card, index) {
+            const item = items[index];
+            const keys = keyRowsFromItem(item).map(unwrapKeyValue).filter(Boolean);
+            if (!keys.length) return;
+            if (card.querySelector("[data-license-key]")) {
+                card.querySelectorAll("[data-license-key]").forEach(function (el, i) {
+                    if (keys[i]) el.textContent = keys[i];
+                });
+                return;
+            }
+            const holder = card.querySelector(".space-y-3") || card;
+            const box = document.createElement("div");
+            box.className = "space-y-2 pt-2 border-t";
+            box.innerHTML =
+                '<p class="text-xs font-medium text-muted-foreground">Dados de Acesso</p>' +
+                '<div class="border rounded-md overflow-hidden divide-y">' +
+                keys
+                    .map(function (key, i) {
+                        return (
+                            '<div class="flex items-center gap-3 px-3 py-2.5 bg-background">' +
+                            '<span class="text-xs font-medium text-muted-foreground w-5 shrink-0">' +
+                            (i + 1) +
+                            '.</span><code class="flex-1 text-xs font-mono break-all select-all" data-license-key>' +
+                            key.replace(/</g, "") +
+                            "</code></div>"
+                        );
+                    })
+                    .join("") +
+                "</div>";
+            holder.appendChild(box);
+            const warn = card.querySelector("[data-missing-keys]");
+            if (warn) warn.remove();
+        });
+    }
+    async function hydrateLicenseKeys(internalId, uuid) {
+        unwrapLicenseKeys();
+        if (!window.SellTrust || !window.SellTrust.fetch) return;
+        const paths = [];
+        if (internalId) paths.push("/order/" + internalId, "/order/payment/" + internalId);
+        if (uuid) paths.push("/order/" + uuid);
+        for (let i = 0; i < paths.length; i++) {
+            try {
+                const res = await window.SellTrust.fetch(paths[i]);
+                const order = res && (res.data || res.order || res);
+                if (order && Array.isArray(order.items) && order.items.length) {
+                    fillMissingKeys(order.items);
+                    fillPackGifts(order);
+                    unwrapLicenseKeys();
+                    return;
+                }
+            } catch (e) {}
+        }
+    }
+    (function () {
+        const orderId = {{ order.internal_id | json }};
+        const paymentLink = {{ order_payment_link | json }};
+        function persist() {
+            if (window.KZOrders) {
+                window.KZOrders.remember({
+                    id: {{ order.id | json }},
+                    internal_id: {{ order.internal_id | json }},
+                    status: {{ order.status | json }},
+                    price: {{ order.price | json }},
+                    created_at: {{ order.created_at | json }},
+                    chat: {{ order.chat | json }},
+                });
+            }
+            unwrapLicenseKeys();
+            hydrateLicenseKeys({{ order.internal_id | json }}, {{ order.id | json }});
+        }
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", persist);
+        else persist();
+        if (!orderId || !paymentLink) return;
+        const params = new URLSearchParams(window.location.search);
+        const shouldOpenByQuery = params.get("open_payment_link") === "1";
+        const sessionKey = `selltrust_open_payment_link:${orderId}`;
+        const pendingStoredLink = sessionStorage.getItem(sessionKey);
+        const shouldOpenBySession = pendingStoredLink === paymentLink;
+        if (!shouldOpenByQuery && !shouldOpenBySession) return;
+        sessionStorage.removeItem(sessionKey);
+        const popup = window.open(paymentLink, "_blank", "noopener,noreferrer");
+        if (!popup) {
+            window.location.href = paymentLink;
+            return;
+        }
+        if (shouldOpenByQuery) {
+            params.delete("open_payment_link");
+            const next = params.toString();
+            history.replaceState({}, "", next ? `${window.location.pathname}?${next}` : window.location.pathname);
+        }
+    })();
+
+    (function rewriteOrderHelp() {
+        var instagram = "https://www.instagram.com/keyzzone.com.br/";
+        function run() {
+            document.querySelectorAll("[data-order-instructions]").forEach(function (el) {
+                el.innerHTML = el.innerHTML
+                    .replace(/Entre em nosso Discord:/gi, "Fale conosco no Instagram:")
+                    .replace(/https?:\/\/(?:www\.)?discord\.gg\/[^\s<"']+/gi, instagram);
+                el.querySelectorAll("p, li").forEach(function (node) {
+                    if (node.querySelector("a")) return;
+                    node.innerHTML = node.innerHTML.replace(
+                        /https?:\/\/[^\s<]+/g,
+                        '<a href="$&" target="_blank" rel="noopener noreferrer" class="text-primary underline underline-offset-2 break-all">$&</a>',
+                    );
+                });
+            });
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", run);
+        } else {
+            run();
+        }
+    })();
+
+    (function repairOrderItems() {
+        function run() {
+            const cards = document.querySelectorAll("[data-order-item][data-product-id]");
+            if (!cards.length || !window.SellTrust || !window.SellTrust.getProducts) return;
+
+            function applyCover(img, url) {
+                if (!img || !url) return;
+                img.addEventListener(
+                    "error",
+                    function () {
+                        img.style.display = "none";
+                    },
+                    { once: true },
+                );
+                img.src = url;
+            }
+
+            cards.forEach(function (card) {
+                const productId = card.getAttribute("data-product-id");
+                if (!productId) return;
+                window.SellTrust.getProducts({ product_ids: [productId] })
+                    .then(function (rows) {
+                        const product = (rows || [])[0];
+                        if (!product) return;
+                        if (!product.parent_id) {
+                            return { product: product, parent: null };
+                        }
+                        return window.SellTrust.getProducts({ product_ids: [product.parent_id] }).then(function (parents) {
+                            return { product: product, parent: (parents || [])[0] || null };
+                        });
+                    })
+                    .then(function (pack) {
+                        if (!pack) return;
+                        const game = (pack.parent && pack.parent.title) || pack.product.title;
+                        const cover =
+                            (pack.parent && pack.parent.images && pack.parent.images[0]) ||
+                            (pack.product.images && pack.product.images[0]);
+                        const titleEl = card.querySelector("[data-order-title]");
+                        const variantEl = card.querySelector("[data-order-variant]");
+                        const img = card.querySelector("[data-order-thumb]");
+                        if (titleEl && game) titleEl.textContent = game;
+                        if (variantEl && pack.parent && pack.product.title && pack.product.title !== game) {
+                            variantEl.textContent = pack.product.title;
+                            variantEl.classList.remove("hidden");
+                        }
+                        applyCover(img, cover);
+                    })
+                    .catch(function () {});
+            });
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", run);
+        } else {
+            run();
+        }
+    })();
+
+    function copySingle(btn, text) {
+        var el = btn && btn.parentElement && btn.parentElement.querySelector("[data-license-key]");
+        text = unwrapKeyValue(text != null && text !== "" ? text : (el && el.textContent));
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            const copyIcon = btn.querySelector('.copy-icon');
+            const checkIcon = btn.querySelector('.check-icon');
+            copyIcon.classList.add('hidden');
+            checkIcon.classList.remove('hidden');
+            btn.classList.add('scale-110');
+            setTimeout(() => {
+                copyIcon.classList.remove('hidden');
+                checkIcon.classList.add('hidden');
+                btn.classList.remove('scale-110');
+            }, 1500);
+            if (typeof toast !== 'undefined') toast.success('Copiado!');
+        });
+    }
+    function copyAllKeys(btn) {
+        const card = btn.closest('.space-y-3') || btn.closest('.space-y-2');
+        const keys = card.querySelectorAll('[data-license-key]');
+        const allText = Array.from(keys).map((el) => unwrapKeyValue(el.textContent)).filter(Boolean).join('\n');
+        navigator.clipboard.writeText(allText).then(() => {
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="check" class="size-3"></i> Copiado!';
+            lucide.createIcons();
+            setTimeout(() => {
+                btn.innerHTML = original;
+                lucide.createIcons();
+            }, 2000);
+            if (typeof toast !== 'undefined') toast.success('Todos copiados!');
+        });
+    }
+</script>
+{% if order.status == 'APPROVED' %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const confettiKey = {{ 'confetti_' | append: order.internal_id | json }};
+            if (localStorage.getItem(confettiKey)) return;
+            localStorage.setItem(confettiKey, '1');
+            const primaryRgb = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+            const [r, g, b] = primaryRgb.split(' ').map(Number);
+            const primaryHex = '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
+            function fire(particleRatio, opts) {
+                confetti(
+                    Object.assign(
+                        {},
+                        {
+                            origin: { y: 0.7 },
+                            colors: [primaryHex, '#ffffff', '#10b981', primaryHex + '80'],
+                            disableForReducedMotion: true,
+                        },
+                        opts,
+                        { particleCount: Math.floor(200 * particleRatio) },
+                    ),
+                );
+            }
+            fire(0.25, { spread: 26, startVelocity: 55 });
+            fire(0.2, { spread: 60 });
+            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+            fire(0.1, { spread: 120, startVelocity: 45 });
+        });
+    </script>
+{% endif %}

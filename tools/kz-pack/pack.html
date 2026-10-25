@@ -1,0 +1,125 @@
+{% layout 'layouts/layout', page_title: 'Monte seu Pack', scripts: 'pack.js' %}
+{% assign pack_ig = '' %}
+{% if store.social and store.social.instagram %}
+    {% assign pack_ig = store.social.instagram | strip %}
+    {% if pack_ig != '' %}
+        {% unless pack_ig contains '://' %}
+            {% assign pack_ig = 'https://instagram.com/' | append: pack_ig %}
+        {% endunless %}
+    {% endif %}
+{% endif %}
+{% assign pack_cat = 'd05b7441-8bed-496a-ab61-06cf49aaf233' %}
+{% load products category_id: pack_cat limit: 60 page: 1 %}
+<style>
+.combo-page{max-width:1368px;margin:0 auto;padding:20px 20px 48px}
+.cb-hero{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:28px 32px 30px;background:linear-gradient(120deg,rgba(18,18,18,.92) 0%,rgba(18,18,18,.55) 48%,rgba(255,120,0,.12) 100%),url("https://cdn.cloudflare.steamstatic.com/steam/apps/2358720/library_hero.jpg") right center/cover no-repeat,#161616}
+.cb-back{display:inline-flex;align-items:center;gap:8px;color:rgba(255,255,255,.72);font-size:13px;margin-bottom:18px}
+.cb-back:hover{color:#fff}
+.cb-kicker{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.18em;color:#ff7800;margin-bottom:10px}
+.cb-hero h1{font-size:clamp(32px,4vw,52px);font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:0 0 12px}
+.cb-lead{max-width:560px;color:rgba(255,255,255,.72);font-size:16px;line-height:1.5;margin:0 0 18px}
+.cb-tabs{display:flex;gap:8px;margin-bottom:14px}
+.cb-tab{height:40px;padding:0 16px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.35);color:#fff;font-size:13px;font-weight:700;cursor:pointer}
+.cb-tab.is-on{background:#ff7800;border-color:#ff7800;color:#121212}
+.cb-note{max-width:560px;color:rgba(255,255,255,.62);font-size:13px;line-height:1.45;margin:0 0 16px}
+.cb-trust{display:flex;flex-wrap:wrap;gap:8px;padding:0;margin:0;list-style:none}
+.cb-trust li{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:999px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.82)}
+#cb-stick{position:sticky;top:76px;z-index:40;margin:18px 0 28px}
+#cb-bar{border:1px solid rgba(255,255,255,.1);border-radius:18px;background:#161616;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.cb-bar-inner{display:grid;grid-template-columns:minmax(180px,1fr) minmax(280px,1.4fr) minmax(220px,.9fr) auto;gap:18px 22px;align-items:center;padding:16px 18px}
+.cb-bar-title{font-size:13px;font-weight:800;letter-spacing:.12em;color:#ff7800;margin:0 0 4px}
+.cb-bar-hint{margin:0;color:rgba(255,255,255,.62);font-size:12.5px;line-height:1.4}
+.cb-slots{display:flex;gap:8px;align-items:center}
+.cb-slots-group{display:flex;gap:8px;align-items:center}
+.cb-slots-group.is-gift{position:relative;flex-wrap:wrap;gap:6px 8px;padding:14px 8px 8px;border:1px dashed rgba(74,222,128,.55);border-radius:14px;background:rgba(74,222,128,.1);box-shadow:0 0 0 1px rgba(74,222,128,.12),0 8px 24px rgba(74,222,128,.08)}
+.cb-gift-label{position:absolute;top:-8px;left:10px;height:16px;padding:0 8px;border-radius:999px;background:#4ade80;color:#052e16;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center}
+.cb-slot{position:relative;width:72px;height:96px;border-radius:12px;padding:0;overflow:hidden;border:1px dashed rgba(255,255,255,.18);background:rgba(255,255,255,.03);color:rgba(255,255,255,.45);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center}
+.cb-slot.is-on{border-style:solid;border-color:#ff7800}
+.cb-slot.is-gift{border-color:rgba(74,222,128,.7);color:#4ade80;background:rgba(74,222,128,.06)}
+.cb-slot.is-gift.is-on{border-style:solid;border-color:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,.25)}
+.cb-slot img{width:100%;height:100%;object-fit:cover;display:block}
+.cb-slot-tag{position:absolute;left:4px;bottom:4px;height:18px;padding:0 6px;border-radius:999px;background:#4ade80;color:#052e16;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center}
+.cb-slot-plus{align-self:center;color:rgba(255,255,255,.35);font-weight:800}
+.cb-totals{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:13px}
+.cb-totals dt{color:rgba(255,255,255,.55);margin:0}
+.cb-totals dd{margin:0;text-align:right;font-weight:700}
+.cb-totals .is-off{color:#4ade80}
+.cb-totals .is-total{color:#ff7800;font-size:15px}
+.cb-go{min-width:180px;height:48px;padding:0 18px;border:0;border-radius:12px;background:#ff7800;color:#121212;font-size:14px;font-weight:800;cursor:pointer}
+.cb-go:disabled{opacity:.45;cursor:not-allowed}
+.cb-cathead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cb-search{flex:1;min-width:220px;height:42px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#fff}
+.cb-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cb-chip{height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.78);font-size:12px;font-weight:600;cursor:pointer}
+.cb-chip.is-on{background:#ff7800;border-color:#ff7800;color:#121212}
+.cb-status{color:rgba(255,255,255,.5);font-size:13px;margin:0 0 12px}
+.kz-card.is-in-pack{outline:2px solid #ff7800;outline-offset:2px;border-radius:12px}
+.kz-cb-on{position:absolute;left:8px;bottom:8px;z-index:3;height:22px;padding:0 8px;border-radius:999px;background:#ff7800;color:#121212;font-size:10px;font-weight:800;display:inline-flex;align-items:center}
+.kz-card.is-in-gift{outline:2px solid #4ade80;outline-offset:2px;border-radius:12px}
+.kz-cb-on.is-gift{background:#4ade80;color:#052e16;letter-spacing:.08em}
+.cb-faq{margin-top:42px;max-width:720px}
+.cb-faq h2{font-size:22px;font-weight:800;margin:0 0 12px}
+.cb-faq details{border-top:1px solid rgba(255,255,255,.08);padding:12px 0}
+.cb-faq summary{cursor:pointer;font-weight:700}
+.cb-faq p{margin:8px 0 0;color:rgba(255,255,255,.65);font-size:14px}
+@media(max-width:1099px){.cb-bar-inner{grid-template-columns:1fr 1fr}.cb-go{grid-column:1/-1;width:100%}}
+@media(max-width:749px){.combo-page{padding:12px 14px 210px}.cb-hero{padding:18px 16px 20px;border-radius:16px}.cb-hero h1{font-size:28px}.cb-lead{font-size:14px}#cb-stick{top:auto;bottom:0;margin:0 -14px}#cb-bar{border-radius:16px 16px 0 0}.cb-bar-inner{grid-template-columns:1fr;gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom))}.cb-slots{overflow-x:auto}.cb-slot{width:56px;height:76px;flex:0 0 auto}}
+</style>
+<div class="combo-page py-5">
+<section id="combo">
+<header class="cb-hero">
+<a class="cb-back" href="/"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>Voltar à loja</a>
+<p class="cb-kicker">MONTE SEU PACK</p>
+<h1>Monte seu Pack</h1>
+<p class="cb-lead" data-pack-lead>Escolha 5 jogos com 20% off e mais 2 jogos grátis. As keys de brinde entram sozinhas depois do Pix.</p>
+<div class="cb-tabs" role="tablist" aria-label="Tamanho do pack">
+<button type="button" class="cb-tab" data-pack="3" aria-selected="false">Pack de 3 jogos</button>
+<button type="button" class="cb-tab is-on" data-pack="5" aria-selected="true">Pack de 5 jogos</button>
+</div>
+<p class="cb-note">Os jogos pagos vão no carrinho com PACK20. Os grátis você marca aqui e a key cai no pedido depois do pagamento.</p>
+<ul class="cb-trust"><li>Key Steam</li><li>Entrega no e-mail</li><li>Pix à vista</li></ul>
+</header>
+<div id="cb-stick">
+<section id="cb-bar" aria-label="Seu combo">
+<div class="cb-bar-inner">
+<div>
+<p class="cb-bar-title" data-cb-title>SEU COMBO 0/5</p>
+<p class="cb-bar-hint" data-cb-hint>Monte 5 pagos + 2 brindes. Os slots verdes são as keys grátis</p>
+</div>
+<div class="cb-slots" data-cb-slots></div>
+<dl class="cb-totals">
+<dt>Soma dos jogos</dt><dd data-cb-sum>R$ 0,00</dd>
+<dt>Desconto do combo</dt><dd class="is-off" data-cb-off>R$ 0,00</dd>
+<dt class="is-gift-label">Brindes</dt><dd class="is-off" data-cb-gifts>—</dd>
+<dt>Total</dt><dd class="is-total" data-cb-total>R$ 0,00</dd>
+<dt>Cupom</dt><dd data-cb-coupon>—</dd>
+</dl>
+<button type="button" class="cb-go" data-cb-go disabled>Escolha 5 jogos</button>
+</div>
+</section>
+</div>
+<div class="cb-cathead">
+<input class="cb-search" data-cb-q type="search" placeholder="Buscar jogo no catálogo" aria-label="Buscar jogo">
+<div class="cb-chips" data-cb-chips></div>
+</div>
+<p class="cb-status" data-cb-status>Carregando o catálogo...</p>
+<div id="cb-grid" class="kz-catalog-grid">
+{% assign pct = products | size %}
+{% if pct > 0 %}
+{% for product in products %}
+{% assign delay = forloop.index0 | modulo: 5 | times: 0.08 %}
+<div class="reveal-fade-up visible" style="--delay: {{ delay }}s">
+{% render 'components/product-card', product: product, settings: settings %}
+</div>
+{% endfor %}
+{% endif %}
+</div>
+<section class="cb-faq" aria-labelledby="cb-faq-title">
+<h2 id="cb-faq-title">Como funciona</h2>
+<details open><summary>O desconto de 20% entra sozinho?</summary><p>Sim. Ao fechar o pack, o cupom PACK20 vai para o checkout e aplica 20% na soma dos jogos escolhidos.</p></details>
+<details><summary>Como recebo as keys grátis?</summary><p>Você escolhe os jogos grátis neste pack. Eles não entram no carrinho (para não serem cobrados). Depois do Pix, o restock gera as keys e grava no pedido. Se não aparecer em alguns minutos, o chat do pedido ainda resolve.</p></details>
+<details><summary>Posso misturar qualquer jogo?</summary><p>Sim, do catálogo da loja. Pack de 3 traz 1 key grátis. Pack de 5 traz 2 keys grátis.</p></details>
+</section>
+<span hidden data-cb-ig>{{ pack_ig }}</span>
+</section>
+</div>

@@ -131,6 +131,17 @@ def seed_map(keymap):
     return added
 
 
+def assert_st_token(st):
+    ping, ping_body = req_retry(ST_BASE + "/product?limit=1", token=st)
+    if ping == 200:
+        return True
+    extra = ""
+    if isinstance(ping_body, dict):
+        extra = str(ping_body.get("message") or ping_body.get("error") or "")[:120]
+    log("TOKEN_FAIL http=%s %s" % (ping, extra))
+    return False
+
+
 def load_keymap():
     keymap = load_json(MAP_PATH, {})
     if not isinstance(keymap, dict):
@@ -149,15 +160,52 @@ def appid_from_images(images):
     return None
 
 
+def normalize_key(v):
+    if v is None:
+        return ""
+    if isinstance(v, dict):
+        v = v.get("value") or v.get("code") or v.get("key") or v.get("license_key") or ""
+    s = str(v).strip().lstrip("\ufeff")
+    for _ in range(4):
+        if len(s) >= 2 and ((s[0] == '"' and s[-1] == '"') or (s[0] == "'" and s[-1] == "'")):
+            blob = s if s[0] == '"' else json.dumps(s[1:-1])
+            try:
+                parsed = json.loads(blob)
+            except json.JSONDecodeError:
+                s = s[1:-1].strip()
+                continue
+            if isinstance(parsed, str):
+                s = parsed.strip()
+                continue
+            if isinstance(parsed, dict):
+                s = normalize_key(parsed)
+                continue
+            break
+        if s[:1] in "{[":
+            try:
+                parsed = json.loads(s)
+            except json.JSONDecodeError:
+                break
+            if isinstance(parsed, dict):
+                s = normalize_key(parsed)
+                continue
+            if isinstance(parsed, str):
+                s = parsed.strip()
+                continue
+            break
+        break
+    return s
+
+
 def key_values(keys):
     out = []
+    seen = set()
     for k in keys or []:
-        if isinstance(k, dict):
-            v = k.get("value") or k.get("code") or k.get("key")
-        else:
-            v = k
-        if v:
-            out.append(str(v))
+        v = normalize_key(k)
+        if not v or v in seen:
+            continue
+        seen.add(v)
+        out.append(v)
     return out
 
 
@@ -167,7 +215,24 @@ def restock_sku(st, ck, keymap, state, product_id, hint_title=None):
     gs, got = req_retry(ST_BASE + "/product/" + product_id, token=st)
     if gs != 200 or not isinstance(got, dict):
         return "get_fail_%s" % gs
-    have = key_values(got.get("license_keys"))
+    raw_keys = got.get("license_keys") or []
+    have = key_values(raw_keys)
+    raw_text = []
+    for k in raw_keys:
+        if isinstance(k, dict):
+            raw_text.append(str(k.get("value") or k.get("code") or k.get("key") or k.get("license_key") or "").strip())
+        elif k is not None:
+            raw_text.append(str(k).strip())
+    raw_text = [x for x in raw_text if x]
+    if raw_text != have:
+        ps, _patched = req_retry(
+            ST_BASE + "/product/" + product_id,
+            method="PATCH",
+            token=st,
+            body={"is_bundle": False, "license_keys": have},
+        )
+        if ps == 200:
+            log("SCRUB_QUOTES %s stock=%s" % (product_id, len(have)))
     if len(have) >= MIN_STOCK:
         return "ok_stock"
     title = (got.get("title") or hint_title or "").strip()
@@ -266,21 +331,198 @@ def order_items(st, order):
     return []
 
 
+GIFT_MARK = "[KZ-GIFT]"
+UUID_RE = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    re.I,
+)
+
+
+def order_detail(st, order):
+    iid = order.get("internal_id")
+    if not iid:
+        return order
+    status, detail = req_retry(ST_BASE + "/order/" + str(iid), token=st)
+    if status == 200 and isinstance(detail, dict):
+        merged = dict(order)
+        merged.update(detail)
+        for key in ("utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "coupon_code"):
+            if not merged.get(key) and order.get(key):
+                merged[key] = order[key]
+        return merged
+    return order
+
+
+def notes_have_gift(st, iid):
+    status, data = req_retry(ST_BASE + "/order/" + str(iid) + "/notes", token=st)
+    rows = []
+    if isinstance(data, list):
+        rows = data
+    elif isinstance(data, dict):
+        rows = data.get("data") or data.get("notes") or []
+    for note in rows or []:
+        content = ""
+        if isinstance(note, dict):
+            content = str(note.get("content") or "")
+        else:
+            content = str(note)
+        if GIFT_MARK in content:
+            return True
+    return False
+
+
+def pack_gift_ids(order, items):
+    source = str(order.get("utm_source") or "").strip().lower()
+    campaign = str(order.get("utm_campaign") or "").strip().upper()
+    coupon = str(order.get("coupon_code") or "").strip().upper()
+    if source != "pack" and campaign != "PACK20" and coupon != "PACK20":
+        return []
+    paid_n = 0
+    paid_ids = set()
+    for item in items or []:
+        pid = item.get("product_id")
+        qty = int(item.get("quantity") or 1)
+        if not pid:
+            continue
+        paid_ids.add(str(pid))
+        paid_n += max(qty, 1)
+    bonus = 1 if paid_n == 3 else 2 if paid_n == 5 else 0
+    if not bonus:
+        return []
+    ids = []
+    for part in re.split(r"[,\s]+", str(order.get("utm_content") or "")):
+        pid = part.strip()
+        if not UUID_RE.match(pid) or pid in paid_ids or pid in ids:
+            continue
+        ids.append(pid)
+        if len(ids) >= bonus:
+            break
+    return ids
+
+
+def take_or_generate_key(st, ck, keymap, state, product_id):
+    gs, got = req_retry(ST_BASE + "/product/" + product_id, token=st)
+    if gs != 200 or not isinstance(got, dict):
+        return None, product_id, "get_fail_%s" % gs
+    title = (
+        (got.get("parent") or {}).get("title")
+        or got.get("title")
+        or product_id
+    )
+    have = key_values(got.get("license_keys"))
+    if have:
+        code = have[0]
+        ps, patched = req_retry(
+            ST_BASE + "/product/" + product_id,
+            method="PATCH",
+            token=st,
+            body={"is_bundle": False, "license_keys": have[1:]},
+        )
+        if ps != 200:
+            msg = ""
+            if isinstance(patched, dict):
+                msg = str(patched.get("message") or patched.get("error") or "")[:80]
+            return None, title, "pop_fail_%s %s" % (ps, msg)
+        return code, title, None
+
+    info = keymap.get(product_id) or {}
+    app_id = info.get("app_id") or appid_from_images(got.get("images") or [])
+    if not app_id:
+        return None, title, "no_app_id"
+    keymap[product_id] = {
+        "app_id": str(app_id),
+        "game": info.get("game") or title,
+    }
+    cs, gen = req_retry(
+        CK_GEN,
+        method="POST",
+        token=ck,
+        body={"appId": str(app_id), "quantity": 1},
+    )
+    if cs == 402:
+        return None, title, "no_balance"
+    if cs != 200 or not isinstance(gen, dict):
+        return None, title, "ck_fail_%s" % cs
+    codes = key_values(gen.get("keys") or gen.get("data") or [])
+    if not codes:
+        return None, title, "ck_no_code"
+    state["charged_cents"] = int(state.get("charged_cents") or 0) + int(gen.get("totalCents") or 0)
+    return codes[0], title, None
+
+
+def post_order_note(st, iid, content):
+    return req_retry(
+        ST_BASE + "/order/" + str(iid) + "/notes",
+        method="POST",
+        token=st,
+        body={"content": content[:1000]},
+    )
+
+
+def deliver_pack_gifts(st, ck, keymap, state, order, items):
+    iid = str(order.get("internal_id") or order.get("id") or "")
+    if not iid:
+        return "skip"
+    done = state.setdefault("gifts_done", {})
+    if done.get(iid):
+        return "already"
+    if notes_have_gift(st, iid):
+        done[iid] = True
+        return "already"
+    gift_ids = pack_gift_ids(order, items)
+    if not gift_ids:
+        return "none"
+    lines = [GIFT_MARK + " Keys de brinde do pack:"]
+    for pid in gift_ids:
+        code, title, err = take_or_generate_key(st, ck, keymap, state, pid)
+        if err == "no_balance":
+            return "no_balance"
+        if err or not code:
+            log("GIFT_FAIL order=%s sku=%s %s" % (iid, pid, err or "empty"))
+            return "fail"
+        lines.append("%s: %s" % (title[:80], code))
+        result = restock_sku(st, ck, keymap, state, pid, title)
+        log("GIFT_RESTOCK order=%s sku=%s result=%s" % (iid, pid, result))
+        if result == "no_balance":
+            return "no_balance"
+    content = "\n".join(lines)
+    ns, nbody = post_order_note(st, iid, content)
+    if ns not in (200, 201):
+        msg = ""
+        if isinstance(nbody, dict):
+            msg = str(nbody.get("message") or nbody.get("error") or "")[:120]
+        log("GIFT_NOTE_FAIL order=%s http=%s %s" % (iid, ns, msg))
+        return "note_fail"
+    done[iid] = True
+    log("GIFT_OK order=%s n=%s" % (iid, len(gift_ids)))
+    return "ok"
+
+
 def list_orders(st):
     rows = []
-    page = 1
-    while page <= 5:
-        qs = "?status=APPROVED&limit=50&page=%s" % page
-        status, data = req_retry(ST_BASE + "/order" + qs, token=st)
-        if status != 200 or not isinstance(data, dict):
-            break
-        chunk = data.get("data") or []
-        rows.extend(chunk)
-        meta = data.get("meta") or {}
-        if page >= int(meta.get("last_page") or 1):
-            break
-        page += 1
-        time.sleep(0.2)
+    seen = set()
+    for st_name in ("APPROVED", "COMPLETED"):
+        page = 1
+        while page <= 5:
+            qs = "?status=%s&limit=50&page=%s" % (st_name, page)
+            status, data = req_retry(ST_BASE + "/order" + qs, token=st)
+            if status != 200 or not isinstance(data, dict):
+                log("ORDER_LIST %s http=%s" % (st_name, status))
+                if isinstance(data, dict):
+                    log("ORDER_LIST_ERR %s" % str(data.get("message") or data.get("error") or "")[:120])
+                break
+            chunk = data.get("data") or []
+            for order in chunk:
+                iid = str(order.get("internal_id") or order.get("id") or "")
+                if not iid or iid in seen:
+                    continue
+                seen.add(iid)
+                rows.append(order)
+            meta = data.get("meta") or {}
+            if page >= int(meta.get("last_page") or 1):
+                break
+            page += 1
+            time.sleep(0.2)
     return rows
 
 
@@ -290,6 +532,8 @@ def run_cycle():
     ck = env.get("CENTRALKEY_API_TOKEN")
     if not st or not ck:
         log("NO_TOKENS")
+        return 1
+    if not assert_st_token(st):
         return 1
 
     keymap = load_keymap()
@@ -306,11 +550,18 @@ def run_cycle():
     skipped = 0
     seen_pids = set()
     for order in orders:
-        if (order.get("status") or "").upper() != "APPROVED":
+        if (order.get("status") or "").upper() not in ("APPROVED", "COMPLETED"):
             continue
         iid = str(order.get("internal_id") or order.get("id"))
-        items = order_items(st, order)
-        order_ok = True
+        detail = order_detail(st, order)
+        items = order_items(st, detail)
+        gift_result = deliver_pack_gifts(st, ck, keymap, state, detail, items)
+        if gift_result == "no_balance":
+            log("STOP_NO_BALANCE gift order=%s" % iid)
+            save_json(MAP_PATH, keymap)
+            save_json(STATE_PATH, state)
+            return 2
+        order_ok = gift_result in ("ok", "already", "none")
         for item in items:
             pid = item.get("product_id")
             if not pid:
@@ -349,6 +600,8 @@ def fill_catalog():
     ck = env.get("CENTRALKEY_API_TOKEN")
     if not st or not ck:
         log("NO_TOKENS")
+        return 1
+    if not assert_st_token(st):
         return 1
 
     keymap = load_keymap()
