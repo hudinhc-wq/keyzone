@@ -2,6 +2,7 @@
 """Reposição automática: pedido APPROVED -> 1 key Central Key no SKU Key Steam."""
 import json
 import os
+import random
 import re
 import sys
 import time
@@ -371,12 +372,12 @@ def notes_have_gift(st, iid):
     return False
 
 
-def pack_gift_ids(order, items):
+def pack_bonus(order, items):
     source = str(order.get("utm_source") or "").strip().lower()
     campaign = str(order.get("utm_campaign") or "").strip().upper()
     coupon = str(order.get("coupon_code") or "").strip().upper()
     if source != "pack" and campaign != "PACK20" and coupon != "PACK20":
-        return []
+        return 0, set()
     paid_n = 0
     paid_ids = set()
     for item in items or []:
@@ -387,17 +388,26 @@ def pack_gift_ids(order, items):
         paid_ids.add(str(pid))
         paid_n += max(qty, 1)
     bonus = 1 if paid_n == 3 else 2 if paid_n == 5 else 0
-    if not bonus:
-        return []
-    ids = []
-    for part in re.split(r"[,\s]+", str(order.get("utm_content") or "")):
-        pid = part.strip()
-        if not UUID_RE.match(pid) or pid in paid_ids or pid in ids:
+    return bonus, paid_ids
+
+
+def pick_random_gift_ids(keymap, state, paid_ids, bonus):
+    blocked = set(str(x) for x in (state.get("ck_404") or []))
+    pool = []
+    for pid, info in (keymap or {}).items():
+        pid = str(pid)
+        if pid in paid_ids or pid in blocked or not UUID_RE.match(pid):
             continue
-        ids.append(pid)
-        if len(ids) >= bonus:
-            break
-    return ids
+        if not isinstance(info, dict):
+            continue
+        game = str(info.get("game") or "").lower()
+        if "dlc" in game:
+            continue
+        if not info.get("app_id"):
+            continue
+        pool.append(pid)
+    random.shuffle(pool)
+    return pool[:bonus]
 
 
 def take_or_generate_key(st, ck, keymap, state, product_id):
@@ -469,9 +479,13 @@ def deliver_pack_gifts(st, ck, keymap, state, order, items):
     if notes_have_gift(st, iid):
         done[iid] = True
         return "already"
-    gift_ids = pack_gift_ids(order, items)
-    if not gift_ids:
+    bonus, paid_ids = pack_bonus(order, items)
+    if not bonus:
         return "none"
+    gift_ids = pick_random_gift_ids(keymap, state, paid_ids, bonus)
+    if not gift_ids:
+        log("GIFT_NO_POOL order=%s bonus=%s" % (iid, bonus))
+        return "fail"
     lines = [GIFT_MARK + " Keys de brinde do pack:"]
     for pid in gift_ids:
         code, title, err = take_or_generate_key(st, ck, keymap, state, pid)

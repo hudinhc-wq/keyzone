@@ -570,15 +570,13 @@ if (checkout) {
             const packTrack = (() => {
                 try {
                     const raw = JSON.parse(sessionStorage.getItem("kzPackState") || "null");
-                    const rows = raw && Array.isArray(raw.gifts) ? raw.gifts : [];
-                    const ids = rows.map((g) => g && g.productId).filter(Boolean);
-                    if (!ids.length) return {};
+                    const coupon = sessionStorage.getItem("kzPackCoupon") || window.couponCode || "";
+                    if (!raw && String(coupon).toUpperCase() !== "PACK20") return {};
                     return {
                         utm_source: "pack",
-                        utm_medium: "gift",
+                        utm_medium: "mystery",
                         utm_campaign: "PACK20",
-                        utm_content: ids.join(","),
-                        utm_term: String(raw.size || ids.length),
+                        utm_term: String((raw && raw.size) || (Cart.products || []).length || ""),
                     };
                 } catch (err) {
                     return {};

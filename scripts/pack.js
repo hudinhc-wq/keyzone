@@ -1,8 +1,8 @@
 (function () {
-    if (window.__kzPackBoundGift) return;
+    if (window.__kzPackBoundMystery) return;
     var page = document.querySelector("#combo");
     if (!page) return;
-    window.__kzPackBoundGift = true;
+    window.__kzPackBoundMystery = true;
     var CATS = [
         { id: "", name: "Todas" },
         { id: "c1cce89a-dd18-40ea-b241-6d431690f990", name: "Lançamentos" },
@@ -25,7 +25,6 @@
     try { if (!sizePref) sizePref = sessionStorage.getItem("kzPackPref") || ""; } catch (e) {}
     var size = sizePref === "3" ? 3 : 5;
     var selected = [];
-    var gifts = [];
     var items = [];
     var seen = {};
     var currentCat = "";
@@ -68,8 +67,8 @@
     function copyFor(n) {
         var b = bonusOf(n);
         return {
-            lead: "Escolha " + n + " jogos com 20% off e mais " + (b === 1 ? "1 jogo grátis" : "2 jogos grátis") + ". As keys de brinde entram sozinhas depois do Pix.",
-            hint: "Monte " + n + " pagos + " + b + " brinde" + (b === 1 ? "" : "s") + ". Os slots verdes são as keys grátis"
+            lead: "Escolha " + n + " jogos com 20% off e ganhe " + (b === 1 ? "1 brinde surpresa" : "2 brindes surpresa") + ". O jogo grátis só aparece depois do Pix.",
+            hint: "Monte " + n + " pagos. O ? verde é brinde aleatório — a key só sai após o pagamento"
         };
     }
     function pickFromCard(a) {
@@ -86,20 +85,18 @@
         };
     }
     function save() {
-        try { sessionStorage.setItem("kzPackState", JSON.stringify({ size: size, items: selected, gifts: gifts })); } catch (e) {}
+        try { sessionStorage.setItem("kzPackState", JSON.stringify({ size: size, items: selected })); } catch (e) {}
     }
     function restore() {
         try {
             var raw = JSON.parse(sessionStorage.getItem("kzPackState") || "null");
             if (!raw || Number(raw.size) !== size || !Array.isArray(raw.items)) return;
             selected = raw.items.filter(function (it) { return it && it.href; }).slice(0, size);
-            gifts = (Array.isArray(raw.gifts) ? raw.gifts : []).filter(function (it) { return it && it.href; }).slice(0, bonusOf(size));
         } catch (e) {}
     }
     function setSize(n, push) {
         size = n === 3 ? 3 : 5;
         if (selected.length > size) selected = selected.slice(0, size);
-        if (gifts.length > bonusOf(size)) gifts = gifts.slice(0, bonusOf(size));
         page.querySelectorAll("[data-pack]").forEach(function (btn) {
             var on = Number(btn.getAttribute("data-pack")) === size;
             btn.classList.toggle("is-on", on);
@@ -124,10 +121,7 @@
         html += '</div><span class="cb-slot-plus" aria-hidden="true">+</span><div class="cb-slots-group is-gift"><span class="cb-gift-label">Brindes</span>';
         var bonus = bonusOf(size);
         for (i = 0; i < bonus; i++) {
-            var gift = gifts[i];
-            html += gift
-                ? '<button type="button" class="cb-slot is-gift is-on" data-gift-slot="' + i + '"><img src="' + gift.img + '" alt=""><span class="cb-slot-tag">Brinde</span></button>'
-                : '<button type="button" class="cb-slot is-gift" data-gift-slot="' + i + '">Brinde ' + (i + 1) + "</button>";
+            html += '<div class="cb-slot is-gift is-mystery" aria-label="Brinde surpresa"><span class="cb-mystery-mark">?</span><span class="cb-slot-tag">Surpresa</span></div>';
         }
         html += "</div>";
         slotsEl.innerHTML = html;
@@ -140,51 +134,39 @@
                 paint();
             });
         });
-        slotsEl.querySelectorAll("[data-gift-slot]").forEach(function (btn) {
-            btn.addEventListener("click", function () {
-                var idx = Number(btn.getAttribute("data-gift-slot"));
-                if (!gifts[idx]) return;
-                gifts.splice(idx, 1);
-                save();
-                paint();
-            });
-        });
     }
     function paintTotals() {
         var sum = selected.reduce(function (acc, it) { return acc + (it.cents || 0); }, 0);
         var off = Math.round(sum * 0.2);
         var bonus = bonusOf(size);
-        var full = selected.length >= size && gifts.length >= bonus;
-        titleEl.textContent = "SEU COMBO " + selected.length + "/" + size + " + " + gifts.length + "/" + bonus + " BRINDE" + (bonus === 1 ? "" : "S");
+        var full = selected.length >= size;
+        titleEl.textContent = "SEU COMBO " + selected.length + "/" + size + " + " + bonus + " SURPRESA";
         sumEl.textContent = money(sum);
         offEl.textContent = money(off);
-        if (giftsEl) giftsEl.textContent = gifts.length ? gifts.length + (gifts.length === 1 ? " key grátis" : " keys grátis") : "—";
+        if (giftsEl) giftsEl.textContent = bonus + (bonus === 1 ? " key surpresa" : " keys surpresa");
         totalEl.textContent = money(sum - off);
-        couponEl.textContent = selected.length >= size ? COUPON : "—";
+        couponEl.textContent = full ? COUPON : "—";
         goEl.disabled = !full || busy;
-        goEl.textContent = busy ? "Adicionando..." : (full ? "Ir para o checkout" : (selected.length < size ? "Escolha " + size + " jogos" : "Escolha " + bonus + " brinde" + (bonus === 1 ? "" : "s")));
+        goEl.textContent = busy ? "Adicionando..." : (full ? "Ir para o checkout" : "Escolha " + size + " jogos");
     }
     function markCards() {
         var paid = {};
-        var free = {};
         selected.forEach(function (it) { paid[it.href] = true; });
-        gifts.forEach(function (it) { free[it.href] = true; });
         grid.querySelectorAll("a.kz-card").forEach(function (a) {
             var href = a.getAttribute("href");
             var onPaid = !!paid[href];
-            var onGift = !!free[href];
             a.classList.toggle("is-in-pack", onPaid);
-            a.classList.toggle("is-in-gift", onGift);
+            a.classList.remove("is-in-gift");
             var media = a.querySelector(".kz-card__media");
             var badge = a.querySelector(".kz-cb-on");
-            if ((onPaid || onGift) && media) {
+            if (onPaid && media) {
                 if (!badge) {
                     badge = document.createElement("span");
                     badge.className = "kz-cb-on";
                     media.appendChild(badge);
                 }
-                badge.textContent = onGift ? "BRINDE" : "No combo";
-                badge.classList.toggle("is-gift", onGift);
+                badge.textContent = "No combo";
+                badge.classList.remove("is-gift");
             } else if (badge) badge.remove();
         });
     }
@@ -194,11 +176,8 @@
         var item = pickFromCard(a);
         if (!item.href) return;
         var paidIdx = selected.findIndex(function (it) { return it.href === item.href; });
-        var giftIdx = gifts.findIndex(function (it) { return it.href === item.href; });
         if (paidIdx !== -1) selected.splice(paidIdx, 1);
-        else if (giftIdx !== -1) gifts.splice(giftIdx, 1);
         else if (selected.length < size) selected.push(item);
-        else if (gifts.length < bonusOf(size)) gifts.push(item);
         else return notify("O pack já está completo. Tire um jogo para trocar.");
         save();
         paint();
@@ -299,11 +278,11 @@
         }, Promise.resolve());
     }
     function checkout() {
-        if (selected.length !== size || gifts.length !== bonusOf(size) || busy) return;
+        if (selected.length !== size || busy) return;
         if (!window.Cart || !Cart.addItem) return notify("Carrinho indisponível. Recarregue a página.");
         busy = true;
         paintTotals();
-        selected.concat(gifts).reduce(function (chain, item) { return chain.then(function () { return fillIds(item); }); }, Promise.resolve())
+        selected.reduce(function (chain, item) { return chain.then(function () { return fillIds(item); }); }, Promise.resolve())
             .then(clearCart)
             .then(function () {
                 return selected.reduce(function (chain, item) {
@@ -314,8 +293,6 @@
                 }, Promise.resolve());
             })
             .then(function () {
-                var missingGift = gifts.some(function (it) { return !it.productId; });
-                if (missingGift) throw new Error("Não achei o id de um jogo grátis.");
                 save();
                 sessionStorage.setItem("kzPackCoupon", COUPON);
                 window.location.href = "/checkout";

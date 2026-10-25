@@ -35,8 +35,9 @@
 .cb-gift-label{position:absolute;top:-8px;left:10px;height:16px;padding:0 8px;border-radius:999px;background:#4ade80;color:#052e16;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center}
 .cb-slot{position:relative;width:72px;height:96px;border-radius:12px;padding:0;overflow:hidden;border:1px dashed rgba(255,255,255,.18);background:rgba(255,255,255,.03);color:rgba(255,255,255,.45);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center}
 .cb-slot.is-on{border-style:solid;border-color:#ff7800}
-.cb-slot.is-gift{border-color:rgba(74,222,128,.7);color:#4ade80;background:rgba(74,222,128,.06)}
-.cb-slot.is-gift.is-on{border-style:solid;border-color:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,.25)}
+.cb-slot.is-gift{border-color:rgba(74,222,128,.7);color:#4ade80;background:rgba(74,222,128,.06);cursor:default;pointer-events:none}
+.cb-slot.is-mystery{flex-direction:column;gap:2px;background:repeating-linear-gradient(135deg,rgba(74,222,128,.16) 0 8px,rgba(18,18,18,.55) 8px 16px);border-style:dashed}
+.cb-mystery-mark{font-size:34px;font-weight:800;line-height:1;color:#4ade80;text-shadow:0 0 18px rgba(74,222,128,.45)}
 .cb-slot img{width:100%;height:100%;object-fit:cover;display:block}
 .cb-slot-tag{position:absolute;left:4px;bottom:4px;height:18px;padding:0 6px;border-radius:999px;background:#4ade80;color:#052e16;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center}
 .cb-slot-plus{align-self:center;color:rgba(255,255,255,.35);font-weight:800}
@@ -71,12 +72,12 @@
 <a class="cb-back" href="/"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>Voltar à loja</a>
 <p class="cb-kicker">MONTE SEU PACK</p>
 <h1>Monte seu Pack</h1>
-<p class="cb-lead" data-pack-lead>Escolha 5 jogos com 20% off e mais 2 jogos grátis. As keys de brinde entram sozinhas depois do Pix.</p>
+<p class="cb-lead" data-pack-lead>Escolha 5 jogos com 20% off e ganhe 2 brindes surpresa. O jogo grátis só aparece depois do Pix.</p>
 <div class="cb-tabs" role="tablist" aria-label="Tamanho do pack">
 <button type="button" class="cb-tab" data-pack="3" aria-selected="false">Pack de 3 jogos</button>
 <button type="button" class="cb-tab is-on" data-pack="5" aria-selected="true">Pack de 5 jogos</button>
 </div>
-<p class="cb-note">Os jogos pagos vão no carrinho com PACK20. Os grátis você marca aqui e a key cai no pedido depois do pagamento.</p>
+<p class="cb-note">Você escolhe só os jogos pagos. O ? verde é brinde aleatório — a key e o nome do jogo só aparecem depois do Pix.</p>
 <ul class="cb-trust"><li>Key Steam</li><li>Entrega no e-mail</li><li>Pix à vista</li></ul>
 </header>
 <div id="cb-stick">
@@ -84,7 +85,7 @@
 <div class="cb-bar-inner">
 <div>
 <p class="cb-bar-title" data-cb-title>SEU COMBO 0/5</p>
-<p class="cb-bar-hint" data-cb-hint>Monte 5 pagos + 2 brindes. Os slots verdes são as keys grátis</p>
+<p class="cb-bar-hint" data-cb-hint>Monte 5 pagos. O ? verde é brinde aleatório — a key só sai após o pagamento</p>
 </div>
 <div class="cb-slots" data-cb-slots></div>
 <dl class="cb-totals">
@@ -117,8 +118,8 @@
 <section class="cb-faq" aria-labelledby="cb-faq-title">
 <h2 id="cb-faq-title">Como funciona</h2>
 <details open><summary>O desconto de 20% entra sozinho?</summary><p>Sim. Ao fechar o pack, o cupom PACK20 vai para o checkout e aplica 20% na soma dos jogos escolhidos.</p></details>
-<details><summary>Como recebo as keys grátis?</summary><p>Você escolhe os jogos grátis neste pack. Eles não entram no carrinho (para não serem cobrados). Depois do Pix, o restock gera as keys e grava no pedido. Se não aparecer em alguns minutos, o chat do pedido ainda resolve.</p></details>
-<details><summary>Posso misturar qualquer jogo?</summary><p>Sim, do catálogo da loja. Pack de 3 traz 1 key grátis. Pack de 5 traz 2 keys grátis.</p></details>
+<details><summary>Como recebo as keys grátis?</summary><p>O brinde é sorteado na hora. Você não escolhe o jogo e não vê a key antes de pagar. Depois do Pix, o nome e a key aparecem no pedido em até 5 minutos.</p></details>
+<details><summary>Posso misturar qualquer jogo?</summary><p>Sim, nos slots pagos. Pack de 3 traz 1 brinde surpresa. Pack de 5 traz 2. O brinde nunca é um dos jogos que você comprou.</p></details>
 </section>
 <span hidden data-cb-ig>{{ pack_ig }}</span>
 </section>
