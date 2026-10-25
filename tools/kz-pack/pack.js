@@ -1,8 +1,8 @@
 (function () {
-    if (window.__kzPackBoundMystery) return;
+    if (window.__kzPackV3) return;
     var page = document.querySelector("#combo");
     if (!page) return;
-    window.__kzPackBoundMystery = true;
+    window.__kzPackV3 = true;
     var CATS = [
         { id: "", name: "Todas" },
         { id: "c1cce89a-dd18-40ea-b241-6d431690f990", name: "Lançamentos" },

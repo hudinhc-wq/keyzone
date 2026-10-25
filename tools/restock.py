@@ -391,12 +391,54 @@ def pack_bonus(order, items):
     return bonus, paid_ids
 
 
-def pick_random_gift_ids(keymap, state, paid_ids, bonus):
+def norm_email(value):
+    return str(value or "").strip().lower()
+
+
+def game_fingerprint(info):
+    info = info if isinstance(info, dict) else {}
+    app = str(info.get("app_id") or "").strip()
+    title = re.sub(r"\s+", " ", str(info.get("game") or "").strip().lower())
+    title = re.sub(r"[^a-z0-9]+", "", title)
+    return app, title
+
+
+def add_buyer_ids(state, bucket, email, pids):
+    email = norm_email(email)
+    if not email:
+        return
+    row = state.setdefault(bucket, {}).setdefault(email, [])
+    for pid in pids or []:
+        pid = str(pid)
+        if pid and pid not in row:
+            row.append(pid)
+
+
+def buyer_blocklist(keymap, state, email, paid_ids):
+    email = norm_email(email)
+    blocked_ids = set(str(x) for x in (paid_ids or []))
+    for bucket in ("buyer_owned", "buyer_gifts"):
+        for pid in (state.get(bucket) or {}).get(email) or []:
+            blocked_ids.add(str(pid))
+    blocked_apps = set()
+    blocked_titles = set()
+    for pid in blocked_ids:
+        app, title = game_fingerprint((keymap or {}).get(pid) or (keymap or {}).get(str(pid)))
+        if app:
+            blocked_apps.add(app)
+        if title:
+            blocked_titles.add(title)
+    return blocked_ids, blocked_apps, blocked_titles
+
+
+def pick_random_gift_ids(keymap, state, paid_ids, bonus, email=""):
     blocked = set(str(x) for x in (state.get("ck_404") or []))
+    owned_ids, owned_apps, owned_titles = buyer_blocklist(keymap, state, email, paid_ids)
+    blocked.update(owned_ids)
     pool = []
     for pid, info in (keymap or {}).items():
         pid = str(pid)
-        if pid in paid_ids or pid in blocked or not UUID_RE.match(pid):
+        if pid in blocked or not UUID_RE.match(pid):
             continue
         if not isinstance(info, dict):
             continue
@@ -405,9 +447,31 @@ def pick_random_gift_ids(keymap, state, paid_ids, bonus):
             continue
         if not info.get("app_id"):
             continue
+        app, title = game_fingerprint(info)
+        if app and app in owned_apps:
+            continue
+        if title and title in owned_titles:
+            continue
         pool.append(pid)
     random.shuffle(pool)
-    return pool[:bonus]
+    picked = []
+    picked_apps = set(owned_apps)
+    picked_titles = set(owned_titles)
+    for pid in pool:
+        info = keymap.get(pid) or {}
+        app, title = game_fingerprint(info)
+        if app and app in picked_apps:
+            continue
+        if title and title in picked_titles:
+            continue
+        picked.append(pid)
+        if app:
+            picked_apps.add(app)
+        if title:
+            picked_titles.add(title)
+        if len(picked) >= bonus:
+            break
+    return picked
 
 
 def take_or_generate_key(st, ck, keymap, state, product_id):
@@ -482,7 +546,8 @@ def deliver_pack_gifts(st, ck, keymap, state, order, items):
     bonus, paid_ids = pack_bonus(order, items)
     if not bonus:
         return "none"
-    gift_ids = pick_random_gift_ids(keymap, state, paid_ids, bonus)
+    email = order.get("client_email")
+    gift_ids = pick_random_gift_ids(keymap, state, paid_ids, bonus, email)
     if not gift_ids:
         log("GIFT_NO_POOL order=%s bonus=%s" % (iid, bonus))
         return "fail"
@@ -508,6 +573,7 @@ def deliver_pack_gifts(st, ck, keymap, state, order, items):
         log("GIFT_NOTE_FAIL order=%s http=%s %s" % (iid, ns, msg))
         return "note_fail"
     done[iid] = True
+    add_buyer_ids(state, "buyer_gifts", email, gift_ids)
     log("GIFT_OK order=%s n=%s" % (iid, len(gift_ids)))
     return "ok"
 
@@ -563,12 +629,22 @@ def run_cycle():
     restocked = 0
     skipped = 0
     seen_pids = set()
+    enriched = []
     for order in orders:
         if (order.get("status") or "").upper() not in ("APPROVED", "COMPLETED"):
             continue
-        iid = str(order.get("internal_id") or order.get("id"))
         detail = order_detail(st, order)
         items = order_items(st, detail)
+        add_buyer_ids(
+            state,
+            "buyer_owned",
+            detail.get("client_email") or order.get("client_email"),
+            [item.get("product_id") for item in items if item.get("product_id")],
+        )
+        enriched.append((detail, items))
+
+    for detail, items in enriched:
+        iid = str(detail.get("internal_id") or detail.get("id"))
         gift_result = deliver_pack_gifts(st, ck, keymap, state, detail, items)
         if gift_result == "no_balance":
             log("STOP_NO_BALANCE gift order=%s" % iid)

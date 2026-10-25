@@ -1,4 +1,4 @@
-{% layout 'layouts/layout', page_title: 'Monte seu Pack', scripts: 'pack.js' %}
+{% layout 'layouts/layout', page_title: 'Monte seu Pack', scripts: 'pack-v3.js' %}
 {% assign pack_ig = '' %}
 {% if store.social and store.social.instagram %}
     {% assign pack_ig = store.social.instagram | strip %}
@@ -87,7 +87,21 @@
 <p class="cb-bar-title" data-cb-title>SEU COMBO 0/5</p>
 <p class="cb-bar-hint" data-cb-hint>Monte 5 pagos. O ? verde é brinde aleatório — a key só sai após o pagamento</p>
 </div>
-<div class="cb-slots" data-cb-slots></div>
+<div class="cb-slots" data-cb-slots>
+<div class="cb-slots-group">
+<button type="button" class="cb-slot">+ 1</button>
+<button type="button" class="cb-slot">+ 2</button>
+<button type="button" class="cb-slot">+ 3</button>
+<button type="button" class="cb-slot">+ 4</button>
+<button type="button" class="cb-slot">+ 5</button>
+</div>
+<span class="cb-slot-plus" aria-hidden="true">+</span>
+<div class="cb-slots-group is-gift">
+<span class="cb-gift-label">Brindes</span>
+<div class="cb-slot is-gift is-mystery" aria-label="Brinde surpresa"><span class="cb-mystery-mark">?</span><span class="cb-slot-tag">Surpresa</span></div>
+<div class="cb-slot is-gift is-mystery" aria-label="Brinde surpresa"><span class="cb-mystery-mark">?</span><span class="cb-slot-tag">Surpresa</span></div>
+</div>
+</div>
 <dl class="cb-totals">
 <dt>Soma dos jogos</dt><dd data-cb-sum>R$ 0,00</dd>
 <dt>Desconto do combo</dt><dd class="is-off" data-cb-off>R$ 0,00</dd>
