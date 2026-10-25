@@ -101,7 +101,7 @@ def req(url, method="GET", token=None, body=None, timeout=40):
 def req_retry(url, method="GET", token=None, body=None, tries=4):
     for i in range(tries):
         status, data = req(url, method=method, token=token, body=body)
-        if status in (429, 403):
+        if status in (429, 403, 500, 502, 503):
             time.sleep(8 + i * 8)
             continue
         return status, data
@@ -211,6 +211,8 @@ def key_values(keys):
 
 
 def restock_sku(st, ck, keymap, state, product_id, hint_title=None):
+    if str(product_id) == GIFT_SKU:
+        return "gift_sku"
     if product_id in (state.get("ck_404") or []):
         return "ck_404"
     gs, got = req_retry(ST_BASE + "/product/" + product_id, token=st)
@@ -333,6 +335,8 @@ def order_items(st, order):
 
 
 GIFT_MARK = "[KZ-GIFT]"
+GIFT_SKU = "43142f61-cdb0-49c0-b606-f04bad0099d4"
+GIFT_POOL = 4
 UUID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
     re.I,
@@ -428,6 +432,9 @@ def buyer_blocklist(keymap, state, email, paid_ids):
             blocked_apps.add(app)
         if title:
             blocked_titles.add(title)
+    for title in (state.get("buyer_gift_titles") or {}).get(email) or []:
+        if title:
+            blocked_titles.add(str(title))
     return blocked_ids, blocked_apps, blocked_titles
 
 
@@ -533,6 +540,89 @@ def post_order_note(st, iid, content):
     )
 
 
+def gift_label(title, code):
+    title = re.sub(r"\s+", " ", str(title or "Brinde")).strip()
+    return "%s | %s" % (title[:80], code)
+
+
+def add_buyer_titles(state, email, titles):
+    email = norm_email(email)
+    if not email:
+        return
+    row = state.setdefault("buyer_gift_titles", {}).setdefault(email, [])
+    for title in titles or []:
+        title = re.sub(r"[^a-z0-9]+", "", str(title or "").strip().lower())
+        if title and title not in row:
+            row.append(title)
+
+
+def gift_line_titles(items):
+    titles = []
+    found = False
+    for item in items or []:
+        if str(item.get("product_id") or "") != GIFT_SKU:
+            continue
+        found = True
+        for raw in key_values(item.get("license_keys")):
+            name = raw.split(" | ", 1)[0] if " | " in raw else ""
+            fp = re.sub(r"[^a-z0-9]+", "", name.strip().lower())
+            if fp:
+                titles.append(fp)
+    return found, titles
+
+
+def ensure_gift_pool(st, ck, keymap, state):
+    gs, got = req_retry(ST_BASE + "/product/" + GIFT_SKU, token=st)
+    if gs != 200 or not isinstance(got, dict):
+        log("GIFT_POOL_GET http=%s" % gs)
+        return "fail"
+    have = key_values(got.get("license_keys"))
+    need = GIFT_POOL - len(have)
+    if need <= 0:
+        log("GIFT_POOL stock=%s" % len(have))
+        return "ok"
+    held = set()
+    for row in have:
+        if " | " in row:
+            held.add(re.sub(r"[^a-z0-9]+", "", row.split(" | ", 1)[0].strip().lower()))
+    added = []
+    for pid in pick_random_gift_ids(keymap, state, [GIFT_SKU], max(need * 3, need), ""):
+        if len(added) >= need:
+            break
+        info = keymap.get(pid) or {}
+        _app, title_fp = game_fingerprint(info)
+        if title_fp and title_fp in held:
+            continue
+        code, title, err = take_or_generate_key(st, ck, keymap, state, pid)
+        if err == "no_balance":
+            log("GIFT_POOL_NO_BALANCE")
+            return "no_balance"
+        if err or not code:
+            log("GIFT_POOL_SKIP sku=%s %s" % (pid, err or "empty"))
+            continue
+        added.append(gift_label(title, code))
+        if title_fp:
+            held.add(title_fp)
+    if not added:
+        log("GIFT_POOL_EMPTY need=%s" % need)
+        return "fail"
+    merged = have + added
+    ps, patched = req_retry(
+        ST_BASE + "/product/" + GIFT_SKU,
+        method="PATCH",
+        token=st,
+        body={"is_bundle": False, "hide_product": False, "license_keys": merged},
+    )
+    if ps != 200:
+        msg = ""
+        if isinstance(patched, dict):
+            msg = str(patched.get("message") or patched.get("error") or "")[:120]
+        log("GIFT_POOL_PATCH http=%s %s" % (ps, msg))
+        return "fail"
+    log("GIFT_POOL stock=%s added=%s" % (len(merged), len(added)))
+    return "ok"
+
+
 def deliver_pack_gifts(st, ck, keymap, state, order, items):
     iid = str(order.get("internal_id") or order.get("id") or "")
     if not iid:
@@ -542,9 +632,28 @@ def deliver_pack_gifts(st, ck, keymap, state, order, items):
         return "already"
     if notes_have_gift(st, iid):
         done[iid] = True
+        log("GIFT_ALREADY order=%s" % iid)
         return "already"
+    on_line, line_titles = gift_line_titles(items)
+    if on_line and line_titles:
+        done[iid] = True
+        add_buyer_titles(state, order.get("client_email"), line_titles)
+        log("GIFT_LINE order=%s n=%s" % (iid, len(line_titles)))
+        return "ok"
     bonus, paid_ids = pack_bonus(order, items)
     if not bonus:
+        paid_n = sum(max(int(item.get("quantity") or 1), 1) for item in (items or []) if item.get("product_id"))
+        if paid_n in (3, 5) or str(order.get("coupon_code") or "").upper() == "PACK20":
+            log(
+                "GIFT_SKIP order=%s paid=%s coupon=%s utm=%s campaign=%s"
+                % (
+                    iid,
+                    paid_n,
+                    order.get("coupon_code"),
+                    order.get("utm_source"),
+                    order.get("utm_campaign"),
+                )
+            )
         return "none"
     email = order.get("client_email")
     gift_ids = pick_random_gift_ids(keymap, state, paid_ids, bonus, email)
@@ -623,6 +732,10 @@ def run_cycle():
         log("MAP_SEEDED +%s total=%s" % (added, len(keymap)))
 
     state = load_json(STATE_PATH, {"processed": [], "ck_404": [], "charged_cents": 0})
+    pool = ensure_gift_pool(st, ck, keymap, state)
+    if pool == "no_balance":
+        log("GIFT_POOL_DEFER")
+    save_json(STATE_PATH, state)
     processed = set(state.get("processed") or [])
 
     orders = list_orders(st)
@@ -732,4 +845,17 @@ def fill_catalog():
 if __name__ == "__main__":
     if "--fill" in sys.argv:
         raise SystemExit(fill_catalog())
+    if "--gift-pool" in sys.argv:
+        env = load_env()
+        st = env.get("SELLTRUST_API_TOKEN")
+        ck = env.get("CENTRALKEY_API_TOKEN")
+        if not st or not ck or not assert_st_token(st):
+            raise SystemExit(1)
+        keymap = load_keymap()
+        seed_map(keymap)
+        state = load_json(STATE_PATH, {"processed": [], "ck_404": [], "charged_cents": 0})
+        result = ensure_gift_pool(st, ck, keymap, state)
+        save_json(MAP_PATH, keymap)
+        save_json(STATE_PATH, state)
+        raise SystemExit(0 if result == "ok" else 2)
     raise SystemExit(run_cycle())

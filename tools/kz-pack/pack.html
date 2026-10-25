@@ -1,4 +1,4 @@
-{% layout 'layouts/layout', page_title: 'Monte seu Pack', scripts: 'pack-v3.js' %}
+{% layout 'layouts/layout', page_title: 'Monte seu Pack', scripts: 'pack-v4.js' %}
 {% assign pack_ig = '' %}
 {% if store.social and store.social.instagram %}
     {% assign pack_ig = store.social.instagram | strip %}
@@ -26,21 +26,21 @@
 .cb-trust li{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:999px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.82)}
 #cb-stick{position:sticky;top:76px;z-index:40;margin:18px 0 28px}
 #cb-bar{border:1px solid rgba(255,255,255,.1);border-radius:18px;background:#161616;box-shadow:0 12px 40px rgba(0,0,0,.45)}
-.cb-bar-inner{display:grid;grid-template-columns:minmax(180px,1fr) minmax(280px,1.4fr) minmax(220px,.9fr) auto;gap:18px 22px;align-items:center;padding:16px 18px}
+.cb-bar-inner{display:grid;grid-template-columns:minmax(168px,.8fr) minmax(0,1.6fr) minmax(150px,.7fr) auto;gap:12px 16px;align-items:center;padding:12px 16px}
 .cb-bar-title{font-size:13px;font-weight:800;letter-spacing:.12em;color:#ff7800;margin:0 0 4px}
-.cb-bar-hint{margin:0;color:rgba(255,255,255,.62);font-size:12.5px;line-height:1.4}
-.cb-slots{display:flex;gap:8px;align-items:center}
-.cb-slots-group{display:flex;gap:8px;align-items:center}
-.cb-slots-group.is-gift{position:relative;flex-wrap:wrap;gap:6px 8px;padding:14px 8px 8px;border:1px dashed rgba(74,222,128,.55);border-radius:14px;background:rgba(74,222,128,.1);box-shadow:0 0 0 1px rgba(74,222,128,.12),0 8px 24px rgba(74,222,128,.08)}
-.cb-gift-label{position:absolute;top:-8px;left:10px;height:16px;padding:0 8px;border-radius:999px;background:#4ade80;color:#052e16;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center}
-.cb-slot{position:relative;width:72px;height:96px;border-radius:12px;padding:0;overflow:hidden;border:1px dashed rgba(255,255,255,.18);background:rgba(255,255,255,.03);color:rgba(255,255,255,.45);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center}
+.cb-bar-hint{margin:0;color:rgba(255,255,255,.62);font-size:12px;line-height:1.35}
+.cb-slots{display:flex;gap:8px;align-items:center;min-width:0;overflow-x:auto;scrollbar-width:thin}
+.cb-slots-group{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+.cb-gift-box{position:relative;flex:0 0 auto;width:92px;height:78px;display:flex;align-items:center;justify-content:center;border-radius:16px;border:1px solid rgba(74,222,128,.45);background:rgba(74,222,128,.1)}
+.cb-gift-label{position:absolute;top:-8px;left:8px;height:16px;padding:0 8px;border-radius:999px;background:#4ade80;color:#052e16;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center}
+.cb-gift-stack{position:relative;width:46px;height:56px}
+.cb-gift-face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1px dashed rgba(74,222,128,.75);background:linear-gradient(160deg,#1a3d24,#0d1912);color:#4ade80;font-size:26px;font-weight:800;box-shadow:0 8px 16px rgba(0,0,0,.35)}
+.cb-gift-face:nth-child(2){transform:translate(12px,7px) rotate(8deg)}
+.cb-gift-qty{position:absolute;right:7px;bottom:7px;height:22px;padding:0 7px;border-radius:999px;background:#4ade80;color:#052e16;font-size:11px;font-weight:800}
+.cb-slot{position:relative;width:50px;height:68px;flex:0 0 auto;border-radius:10px;padding:0;overflow:hidden;border:1px dashed rgba(255,255,255,.18);background:rgba(255,255,255,.03);color:rgba(255,255,255,.45);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center}
 .cb-slot.is-on{border-style:solid;border-color:#ff7800}
-.cb-slot.is-gift{border-color:rgba(74,222,128,.7);color:#4ade80;background:rgba(74,222,128,.06);cursor:default;pointer-events:none}
-.cb-slot.is-mystery{flex-direction:column;gap:2px;background:repeating-linear-gradient(135deg,rgba(74,222,128,.16) 0 8px,rgba(18,18,18,.55) 8px 16px);border-style:dashed}
-.cb-mystery-mark{font-size:34px;font-weight:800;line-height:1;color:#4ade80;text-shadow:0 0 18px rgba(74,222,128,.45)}
 .cb-slot img{width:100%;height:100%;object-fit:cover;display:block}
-.cb-slot-tag{position:absolute;left:4px;bottom:4px;height:18px;padding:0 6px;border-radius:999px;background:#4ade80;color:#052e16;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center}
-.cb-slot-plus{align-self:center;color:rgba(255,255,255,.35);font-weight:800}
+.cb-slot-plus{flex:0 0 auto;color:rgba(255,255,255,.35);font-weight:800}
 .cb-totals{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:13px}
 .cb-totals dt{color:rgba(255,255,255,.55);margin:0}
 .cb-totals dd{margin:0;text-align:right;font-weight:700}
@@ -63,8 +63,8 @@
 .cb-faq details{border-top:1px solid rgba(255,255,255,.08);padding:12px 0}
 .cb-faq summary{cursor:pointer;font-weight:700}
 .cb-faq p{margin:8px 0 0;color:rgba(255,255,255,.65);font-size:14px}
-@media(max-width:1099px){.cb-bar-inner{grid-template-columns:1fr 1fr}.cb-go{grid-column:1/-1;width:100%}}
-@media(max-width:749px){.combo-page{padding:12px 14px 210px}.cb-hero{padding:18px 16px 20px;border-radius:16px}.cb-hero h1{font-size:28px}.cb-lead{font-size:14px}#cb-stick{top:auto;bottom:0;margin:0 -14px}#cb-bar{border-radius:16px 16px 0 0}.cb-bar-inner{grid-template-columns:1fr;gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom))}.cb-slots{overflow-x:auto}.cb-slot{width:56px;height:76px;flex:0 0 auto}}
+@media(max-width:1099px){.cb-bar-inner{grid-template-columns:1fr 1fr}.cb-go{grid-column:1/-1;width:100%}.cb-slots{grid-column:1/-1}}
+@media(max-width:749px){.combo-page{padding:12px 14px 210px}.cb-hero{padding:18px 16px 20px;border-radius:16px}.cb-hero h1{font-size:28px}.cb-lead{font-size:14px}#cb-stick{top:auto;bottom:0;margin:0 -14px}#cb-bar{border-radius:16px 16px 0 0}.cb-bar-inner{grid-template-columns:1fr;gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom))}.cb-slot{width:46px;height:62px}.cb-gift-box{width:78px;height:70px}}
 </style>
 <div class="combo-page py-5">
 <section id="combo">
@@ -85,7 +85,7 @@
 <div class="cb-bar-inner">
 <div>
 <p class="cb-bar-title" data-cb-title>SEU COMBO 0/5</p>
-<p class="cb-bar-hint" data-cb-hint>Monte 5 pagos. O ? verde é brinde aleatório — a key só sai após o pagamento</p>
+<p class="cb-bar-hint" data-cb-hint>5 pagos + 2 surpresa. A key só aparece depois do Pix</p>
 </div>
 <div class="cb-slots" data-cb-slots>
 <div class="cb-slots-group">
@@ -96,10 +96,10 @@
 <button type="button" class="cb-slot">+ 5</button>
 </div>
 <span class="cb-slot-plus" aria-hidden="true">+</span>
-<div class="cb-slots-group is-gift">
+<div class="cb-gift-box" aria-label="2 brindes surpresa">
 <span class="cb-gift-label">Brindes</span>
-<div class="cb-slot is-gift is-mystery" aria-label="Brinde surpresa"><span class="cb-mystery-mark">?</span><span class="cb-slot-tag">Surpresa</span></div>
-<div class="cb-slot is-gift is-mystery" aria-label="Brinde surpresa"><span class="cb-mystery-mark">?</span><span class="cb-slot-tag">Surpresa</span></div>
+<div class="cb-gift-stack"><span class="cb-gift-face">?</span><span class="cb-gift-face">?</span></div>
+<span class="cb-gift-qty">+2</span>
 </div>
 </div>
 <dl class="cb-totals">

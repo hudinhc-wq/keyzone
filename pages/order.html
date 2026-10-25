@@ -188,6 +188,7 @@
                             {% endif %}
                         </p>
                         <div class="hidden space-y-2" data-pack-gifts-list></div>
+                        <script type="application/json" id="kz-gift-notes">{% if order.notes %}[{% for note in order.notes %}{{ note.content | default: note.body | default: note.message | json }}{% unless forloop.last %},{% endunless %}{% endfor %}]{% else %}[]{% endif %}</script>
                     </div>
                 </div>
                 {% if order.status == 'APPROVED' or order.status == 'COMPLETED' %}
@@ -331,6 +332,22 @@
             const fromText = unwrapKeyValue(el.textContent);
             const value = fromJson || fromText;
             if (value) el.textContent = value;
+            const raw = (el.textContent || "").trim();
+            const cut = raw.indexOf(" | ");
+            if (cut > 0) {
+                const game = raw.slice(0, cut).trim();
+                const key = raw.slice(cut + 3).trim();
+                if (game && key) {
+                    el.textContent = key;
+                    const card = el.closest("[data-order-item]");
+                    const variant = card && card.querySelector("[data-order-variant]");
+                    const title = card && card.querySelector("[data-order-title]");
+                    if (variant && title && /brinde/i.test(title.textContent || "")) {
+                        variant.textContent = game;
+                        variant.classList.remove("hidden");
+                    }
+                }
+            }
         });
     }
     function keyRowsFromItem(item) {
@@ -358,13 +375,18 @@
     }
     function fillPackGifts(order) {
         const mount = document.querySelector("[data-pack-gifts]");
-        if (!mount || !order) return;
-        const notes = order.notes || order.order_notes || [];
+        if (!mount || order == null) return;
+        let notes = [];
+        if (Array.isArray(order)) notes = order;
+        else if (order && Array.isArray(order.notes)) notes = order.notes;
+        else if (order && Array.isArray(order.order_notes)) notes = order.order_notes;
+        else if (order && Array.isArray(order.data)) notes = order.data;
         let rows = [];
-        (Array.isArray(notes) ? notes : []).forEach(function (note) {
-            rows = rows.concat(parseGiftNote(note && (note.content || note)));
+        notes.forEach(function (note) {
+            rows = rows.concat(parseGiftNote(note && (note.content || note.body || note)));
         });
-        if (!rows.length && typeof order.notes === "string") rows = parseGiftNote(order.notes);
+        if (!rows.length && order && typeof order.notes === "string") rows = parseGiftNote(order.notes);
+        if (!rows.length && order && typeof order.content === "string") rows = parseGiftNote(order.content);
         const packOrder =
             String(order.utm_source || "").toLowerCase() === "pack" ||
             String(order.utm_campaign || "").toUpperCase() === "PACK20" ||
@@ -440,20 +462,31 @@
     }
     async function hydrateLicenseKeys(internalId, uuid) {
         unwrapLicenseKeys();
+        var bootNotes = [];
+        var bootEl = document.getElementById("kz-gift-notes");
+        if (bootEl) {
+            try { bootNotes = JSON.parse(bootEl.textContent || "[]"); } catch (err) { bootNotes = []; }
+        }
+        fillPackGifts({
+            status: {{ order.status | json }},
+            coupon_code: {{ order.coupon_code | json }},
+            utm_source: {{ order.utm_source | json }},
+            utm_campaign: {{ order.utm_campaign | json }},
+            notes: Array.isArray(bootNotes) ? bootNotes.map(function (content) { return { content: content }; }) : [],
+        });
         if (!window.SellTrust || !window.SellTrust.fetch) return;
         const paths = [];
-        if (internalId) paths.push("/order/" + internalId, "/order/payment/" + internalId);
-        if (uuid) paths.push("/order/" + uuid);
+        if (internalId) {
+            paths.push("/order/" + internalId, "/order/" + internalId + "/notes", "/order/payment/" + internalId);
+        }
+        if (uuid) paths.push("/order/" + uuid, "/order/" + uuid + "/notes");
         for (let i = 0; i < paths.length; i++) {
             try {
                 const res = await window.SellTrust.fetch(paths[i]);
-                const order = res && (res.data || res.order || res);
-                if (order && Array.isArray(order.items) && order.items.length) {
-                    fillMissingKeys(order.items);
-                    fillPackGifts(order);
-                    unwrapLicenseKeys();
-                    return;
-                }
+                const payload = res && (res.data || res.order || res);
+                if (payload && Array.isArray(payload.items) && payload.items.length) fillMissingKeys(payload.items);
+                fillPackGifts(payload);
+                unwrapLicenseKeys();
             } catch (e) {}
         }
     }

@@ -1,8 +1,8 @@
 (function () {
-    if (window.__kzPackV3) return;
+    if (window.__kzPackV4) return;
     var page = document.querySelector("#combo");
     if (!page) return;
-    window.__kzPackV3 = true;
+    window.__kzPackV4 = true;
     var CATS = [
         { id: "", name: "Todas" },
         { id: "c1cce89a-dd18-40ea-b241-6d431690f990", name: "Lançamentos" },
@@ -68,7 +68,7 @@
         var b = bonusOf(n);
         return {
             lead: "Escolha " + n + " jogos com 20% off e ganhe " + (b === 1 ? "1 brinde surpresa" : "2 brindes surpresa") + ". O jogo grátis só aparece depois do Pix.",
-            hint: "Monte " + n + " pagos. O ? verde é brinde aleatório — a key só sai após o pagamento"
+            hint: n + " pagos + " + b + " surpresa. A key só aparece depois do Pix"
         };
     }
     function pickFromCard(a) {
@@ -118,12 +118,12 @@
                 ? '<button type="button" class="cb-slot is-on" data-paid-slot="' + i + '"><img src="' + it.img + '" alt=""></button>'
                 : '<button type="button" class="cb-slot" data-paid-slot="' + i + '">+ ' + (i + 1) + "</button>";
         }
-        html += '</div><span class="cb-slot-plus" aria-hidden="true">+</span><div class="cb-slots-group is-gift"><span class="cb-gift-label">Brindes</span>';
+        html += '</div><span class="cb-slot-plus" aria-hidden="true">+</span>';
         var bonus = bonusOf(size);
-        for (i = 0; i < bonus; i++) {
-            html += '<div class="cb-slot is-gift is-mystery" aria-label="Brinde surpresa"><span class="cb-mystery-mark">?</span><span class="cb-slot-tag">Surpresa</span></div>';
-        }
-        html += "</div>";
+        html += '<div class="cb-gift-box" aria-label="' + bonus + ' brinde' + (bonus === 1 ? "" : "s") + ' surpresa">';
+        html += '<span class="cb-gift-label">Brindes</span><div class="cb-gift-stack">';
+        for (i = 0; i < bonus; i++) html += '<span class="cb-gift-face">?</span>';
+        html += '</div><span class="cb-gift-qty">+' + bonus + "</span></div>";
         slotsEl.innerHTML = html;
         slotsEl.querySelectorAll("[data-paid-slot]").forEach(function (btn) {
             btn.addEventListener("click", function () {
@@ -205,7 +205,7 @@
         wraps.forEach(function (wrap) {
             var a = wrap.querySelector("a.kz-card");
             var href = a && a.getAttribute("href");
-            if (!href || isJunk(wrap)) return;
+            if (!href || isJunk(wrap) || href.indexOf("brinde-surpresa-do-pack") !== -1) return;
             if (seen[href]) {
                 var cur = seen[href].getAttribute("data-cats") || "";
                 if (("|" + cur + "|").indexOf("|" + cat.id + "|") === -1) seen[href].setAttribute("data-cats", cur ? cur + "|" + cat.id : cat.id);
@@ -291,6 +291,12 @@
                         return Cart.addItem(item.productId, item.variantId || undefined, 1, undefined, { skipSheet: true });
                     });
                 }, Promise.resolve());
+            })
+            .then(function () {
+                var giftEl = page.querySelector("[data-cb-gift]");
+                var giftId = giftEl && (giftEl.getAttribute("data-cb-gift") || "").trim();
+                if (!giftId) return;
+                return Cart.addItem(giftId, undefined, bonusOf(size), undefined, { skipSheet: true });
             })
             .then(function () {
                 save();
